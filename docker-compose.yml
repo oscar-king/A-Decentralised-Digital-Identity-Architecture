@@ -1,0 +1,29 @@
+version: "3.7"
+
+services:
+
+  cp:
+    build: cp
+    container_name: cp
+    restart: always
+    environment:
+      - APP_NAME=CertificationProvider
+    expose:
+      - 8080
+
+  ap:
+    build: ap
+    container_name: ap
+    restart: always
+    environment:
+      - APP_NAME=AuthenticationProvider
+    expose:
+      - 5000
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "5000:5000"
