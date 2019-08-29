@@ -1,15 +1,15 @@
 language: python
 install:
-  - pip install -r requirements.txt
+
 env:
   global:
     - CC_TEST_REPORTER_ID=d1be0f353f6486c96243b0bad4ff26b200b020a3677f100cf531729f852cd7d4
-
-
 before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - ./cc-test-reporter before-build
-script: pytest
-after_script:
-  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+    - pip install -r requirements.txt
+    - pip install coverage
+    - pip install codeclimate-test-reporter
+script:
+  - pytest
+  - codeclimate-test-reporter --file .coverage
+after_success:
+  - codeclimate-test-reporter
