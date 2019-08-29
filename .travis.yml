@@ -1,6 +1,8 @@
 language: python
 install:
   - pip install -r requirements.txt
-
+env:
+  global:
+    - CC_TEST_REPORTER_ID=d1be0f353f6486c96243b0bad4ff26b200b020a3677f100cf531729f852cd7d4
 # command to run tests
 script: pytest
