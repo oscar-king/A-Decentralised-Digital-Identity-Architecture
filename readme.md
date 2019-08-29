@@ -59,14 +59,11 @@ The above should be done for all entities. It is also vital that the following n
 
 ### Sockets
 The default configuration for the project is to have docker compose deploy all the containers locally on `localhost`. Additionally the endpoints for the specific entities are as follows:
-<center>
 
 |           Entity        | Directory Name  |      Port     |
-| ------------------------|-----------------| --------------|
+| ------------------------|:---------------:|:-------------:|
 | Cerfication Provider    |        cp       |     5001      |
 | Authentication Provider |        ap       |     5000      |
-
-</center>
 
 The ports can be changed by merely altering them in the `.env` file. However after changing the ports the `settings.py` script must be run to ensure all the configuration files are updated.
 ```bash
