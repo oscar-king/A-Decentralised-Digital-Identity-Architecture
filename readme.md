@@ -8,11 +8,15 @@ A brief overview of the file structure of this project.
 ```bash
     .
     ├── ap
+        ├── tests
+            ├── tests_app_pytest.py  
         ├── .dockerfile
         ├── app.ini
         ├── app.py
         ├── Dockerfile            
     ├── cp
+        ├── tests
+            ├── tests_app_pytest.py  
         ├── .dockerfile
         ├── app.ini
         ├── app.py
