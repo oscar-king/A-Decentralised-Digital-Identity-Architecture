@@ -4,8 +4,8 @@ services:
 
   cp:
     build:
-      context: cp/
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: cp/Dockerfile
     container_name: cp
     restart: always
     environment:
@@ -15,8 +15,8 @@ services:
 
   ap:
     build:
-      context: ap/
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ap/Dockerfile
     container_name: ap
     restart: always
     environment:

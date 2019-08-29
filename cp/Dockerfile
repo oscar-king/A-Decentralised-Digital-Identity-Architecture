@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Copy the current directory contents into the container at /app
-ADD . /app
+ADD cp /app
 
 # run the command to start uWSGI
 CMD ["uwsgi", "--ini", "app.ini"]

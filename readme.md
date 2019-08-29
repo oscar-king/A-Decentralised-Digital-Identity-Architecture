@@ -11,19 +11,18 @@ A brief overview of the file structure of this project.
         ├── .dockerfile
         ├── app.ini
         ├── app.py
-        ├── Dockerfile
-        ├── requirements.txt            
+        ├── Dockerfile            
     ├── cp
         ├── .dockerfile
         ├── app.ini
         ├── app.py
-        ├── Dockerfile
-        ├── requirements.txt                 
+        ├── Dockerfile            
     ├── nginx
         ├── Dockerfile
         ├── nginx.conf         
     ├── .env                
-    ├── .gitignore          
+    ├── .gitignore    
+    ├── requirements.txt      
     ├── docker-compose.yml
     ├── settings.py
     └── README.md
