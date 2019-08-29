@@ -1,6 +1,8 @@
+[![Build Status](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture.svg?token=L8y7QxZfxoXmp3WcvyPR&branch=master)](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture) [![Maintainability](https://api.codeclimate.com/v1/badges/253cb83f374b8a7dfd99/maintainability)](https://codeclimate.com/github/oscar-king/A-Decentralised-Digital-Identity-Architecture/maintainability) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # A Decentralised Digital Identity Architecture
 
-This is a toy implementation of the architecture proposed by Geoff Goodell and Tomaso Aste in [this](https://arxiv.org/abs/1902.08769) paper.
+This is a toy implementation of the architecture proposed by Geoff Goodell and Tomaso Aste in [this](https://arxiv.org/abs/1902.08769) paper. Currently still being developed!!
 
 ## Structure
 A brief overview of the file structure of this project.
