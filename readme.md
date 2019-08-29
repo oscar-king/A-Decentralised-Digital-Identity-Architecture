@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture.svg?token=L8y7QxZfxoXmp3WcvyPR&branch=master)](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture)[![Maintainability](https://api.codeclimate.com/v1/badges/253cb83f374b8a7dfd99/maintainability)](https://codeclimate.com/github/oscar-king/A-Decentralised-Digital-Identity-Architecture/maintainability)
+[![Build Status](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture.svg?token=L8y7QxZfxoXmp3WcvyPR&branch=master)](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture) [![Maintainability](https://api.codeclimate.com/v1/badges/253cb83f374b8a7dfd99/maintainability)](https://codeclimate.com/github/oscar-king/A-Decentralised-Digital-Identity-Architecture/maintainability)
 
 # A Decentralised Digital Identity Architecture
 
