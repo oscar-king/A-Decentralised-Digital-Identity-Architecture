@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture.svg?token=L8y7QxZfxoXmp3WcvyPR&branch=master)](https://travis-ci.com/oscar-king/A-Decentralised-Digital-Identity-Architecture)
+
 # A Decentralised Digital Identity Architecture
 
 This is a toy implementation of the architecture proposed by Geoff Goodell and Tomaso Aste in [this](https://arxiv.org/abs/1902.08769) paper.
