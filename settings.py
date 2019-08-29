@@ -35,7 +35,9 @@ for subdir in subdirs:
     # Add server module to the nginx file object
     server = nginx.Server()
     server.add(
-        nginx.Key('listen', port),
+        nginx.Key('listen', port + " " + "ssl"),
+        nginx.Key('ssl_certificate', "/etc/nginx/" + subdir + "_cert.crt"),
+        nginx.Key('ssl_certificate_key', "/etc/nginx/" + subdir + "_cert.key"),
         nginx.Location('/',
             nginx.Key('include', 'uwsgi_params'),
             nginx.Key('uwsgi_pass', subdir + ":" + port)

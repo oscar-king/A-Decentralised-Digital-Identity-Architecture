@@ -28,6 +28,11 @@ services:
     build: ./nginx
     container_name: nginx
     restart: always
+    volumes:
+      - ./cp/cp_cert.crt:/etc/nginx/cp_cert.crt
+      - ./cp/cp_cert.key:/etc/nginx/cp_cert.key
+      - ./cp/cp_cert.crt:/etc/nginx/ap_cert.crt
+      - ./cp/cp_cert.key:/etc/nginx/ap_cert.key
     ports:
       - "80:80"
       - "${ap_port}:${ap_port}"

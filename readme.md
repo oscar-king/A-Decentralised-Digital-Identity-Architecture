@@ -1,0 +1,2 @@
+1. Need to generate key pairs for all apps. E.g `ap_cert.crt` and `ap_cert.key`. It is important that they are named like `<subdir>_cert.key` or `<subdir>_cert.crt` because the `settings.py` file depends on it.
+2. Need to run settings.py before deployment if any changes are made to the .env file. 
