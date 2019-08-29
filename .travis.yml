@@ -4,12 +4,12 @@ install:
 env:
   global:
     - CC_TEST_REPORTER_ID=d1be0f353f6486c96243b0bad4ff26b200b020a3677f100cf531729f852cd7d4
+    - GIT_BRANCH=master
 before_script:
-    - pip install -r requirements.txt
-    - pip install coverage
-    - pip install codeclimate-test-reporter
+    - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+    - chmod +x ./cc-test-reporter
+    - ./cc-test-reporter before-build
 script:
   - pytest
-  - codeclimate-test-reporter --file .coverage
 after_success:
-  - codeclimate-test-reporter
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
