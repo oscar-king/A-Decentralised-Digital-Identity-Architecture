@@ -1,12 +1,5 @@
 language: python
-install:
-
-env:
-  global:
-    - CC_TEST_REPORTER_ID=d1be0f353f6486c96243b0bad4ff26b200b020a3677f100cf531729f852cd7d4
-    - GIT_BRANCH=master
 before_script:
-    - pip install coverage
     - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
     - chmod +x ./cc-test-reporter
     - ./cc-test-reporter before-build
