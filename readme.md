@@ -62,8 +62,10 @@ The default configuration for the project is to have docker compose deploy all t
 
 |           Entity        | Directory Name  |      Port     |
 | ------------------------|:---------------:|:-------------:|
-| Cerfication Provider    |        cp       |     5001      |
 | Authentication Provider |        ap       |     5000      |
+| Cerfication Provider    |        cp       |     5001      |
+|         Service         |        ap       |     5002      |
+
 
 The ports can be changed by merely altering them in the `.env` file. However after changing the ports the `settings.py` script must be run to ensure all the configuration files are updated.
 ```bash
