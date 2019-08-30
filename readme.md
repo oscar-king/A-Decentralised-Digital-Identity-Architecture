@@ -52,8 +52,8 @@ Before deploying it is important to generate certificates for each entity (i.e C
 
 Assuming you are in the project's root directory:
 ```bash
-user@host:~$cd ap
-user@host:~$openssl req -newkey rsa:2048 -nodes -keyout ap_cert.key -x509 -days 365 -out ap_cert.crt
+cd ap
+openssl req -newkey rsa:2048 -nodes -keyout ap_cert.key -x509 -days 365 -out ap_cert.crt
 ``` 
 The above should be done for all entities. It is also vital that the following naming conventions are respected: `<current_directory>_cert.key` and `<current_directory>_cert.crt` e.g. If you are in the `ap` directory then the certificate and key will have the following names: `ap_cert.crt` and `ap_cert.key`. There are no restrictions as to the type of certificate, the algorithm or how it what tool you use to create it, the example happens to use OpenSSL. 
 
@@ -69,7 +69,11 @@ The ports can be changed by merely altering them in the `.env` file. However aft
 ```bash
 python3 settings.py
 ```
-
+Then to run the project issue the following commands:
+```bash
+docker-compose build
+docker-compose up
+```
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
