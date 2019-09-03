@@ -48,6 +48,7 @@ services:
       - ./cp/cp_cert.key:/etc/nginx/service_cert.key
     ports:
       - "80:80"
+      - "8080:8080"
       - "${ap_port}:${ap_port}"
       - "${cp_port}:${cp_port}"
       - "${service_port}:${service_port}"

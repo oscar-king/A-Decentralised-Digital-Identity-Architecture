@@ -45,5 +45,15 @@ for subdir in subdirs:
     )
     nginx_config.add(server)
 
+# Hardcoded redirect for base localhost
+server = nginx.Server()
+server.add(
+    nginx.Key('listen', "80"),
+    nginx.Key('listen', "8080"),
+    nginx.Key('server_name', "localhost"),
+    nginx.Key('return', "307 https://github.com/oscar-king/A-Decentralised-Digital-Identity-Architecture$request_uri")
+)
+nginx_config.add(server)
+
 # Write the nginx.conf file
 nginx.dumpf(nginx_config, 'nginx/nginx.conf')
