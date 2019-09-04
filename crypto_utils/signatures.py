@@ -16,43 +16,43 @@ class Signature:
     pub_key (BN): public key used to verify a signature. Verifier must know it
     """
 
-    def __init__(self, G=None, s_k=None, p_k=None):
-        if G is None:
-            (self.G, self.sig_key, self.pub_key) = self.__setup()
+    def __init__(self, group=None, s_k=None, p_k=None):
+        if group is None:
+            (self.group, self.sig_key, self.pub_key) = self.__setup()
         else:
-            self.G = G
+            self.group = group
             self.sig_key = s_k
             self.pub_key = p_k
 
     # Generate keys and group for signatures
     def __setup(self):
-        G = EcGroup(713)
-        sig_key = G.order().random()
-        pub_key = sig_key * G.generator()
-        return G, sig_key, pub_key
+        group = EcGroup(713)
+        sig_key = group.order().random()
+        pub_key = sig_key * group.generator()
+        return group, sig_key, pub_key
 
-    def sign_message(self, messg, G=None, s_k=None):
+    def sign_message(self, messg, group=None, s_k=None):
         """
         Performs an elliptic curve digital signature
         Args:
-           G (EcGroup): group in which math is done.
+           group (EcGroup): group in which math is done.
            s_k (Bn): secret key used to sign.
            messg (str): string to sign. Default is "Credential"
         Returns: (sig, hash) ((Bn, Bn),hash): signature, hash of messg
         """
         # Set defaults if no parameters are passed
-        if G is None: G = self.G
+        if group is None: group = self.group
         if s_k is None: s_k = self.sig_key
 
         # Hash the (potentially long) message into a short digest.
         digest = self.hash_str(messg).encode()
 
         # sign hashed message
-        signature = do_ecdsa_sign(G, s_k, digest)
+        signature = do_ecdsa_sign(group, s_k, digest)
         return signature
 
     @classmethod
-    def verify_signature(cls, p_k, sig, messg, G=None):
+    def verify_signature(cls, p_k, sig, messg, group=None):
         """
         Verifies the signature provided aginst a public key
         The public key, group G must correspond to secret key used for signing
@@ -65,11 +65,11 @@ class Signature:
         Returns:
         verified (Boolean): True if sig valid, False otherwise
         """
-        if G is None:
-            G = EcGroup(713)
+        if group is None:
+            group = EcGroup(713)
 
         hash = cls.hash_str(messg).encode()
-        return do_ecdsa_verify(G, p_k, sig, hash)
+        return do_ecdsa_verify(group, p_k, sig, hash)
 
     @classmethod
     def hash_str(cls, messg):

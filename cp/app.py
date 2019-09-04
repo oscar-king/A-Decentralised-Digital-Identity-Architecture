@@ -1,7 +1,10 @@
-import flask
-from flask import Flask, Request, Response
-from cp.workers import post_key_worker
 import os
+
+import flask
+from flask import Flask
+
+from cp.workers import post_key_worker
+
 app = Flask(__name__)
 
 
@@ -16,12 +19,12 @@ def index():
     return "Hello from Flask"
 
 
-@app.route("/identify", methods=['GET','POST'])
+@app.route("/identify", methods=['GET', 'POST'])
 def identify():
     return "CP identification stub -> will be a post"
 
 
-@app.route("/post_keys", methods=['GET','POST'])
+@app.route("/post_keys", methods=['GET', 'POST'])
 def post_keys():
     if flask.request.method == 'POST':
         worker = post_key_worker.PostKeyWorker(1)
@@ -29,6 +32,7 @@ def post_keys():
         return "Okay"
     elif flask.request.method == 'GET':
         return "This is a POST method"
+
 
 if __name__ == '__main__':
     app.run()

@@ -1,6 +1,7 @@
 import configparser
-import dotenv
 import os
+
+import dotenv
 import nginx
 
 # Load the environment variables from the .env file
@@ -13,7 +14,6 @@ subdirs = [x.strip() for x in os.environ.get("SUBDIRS").split(',')]
 config = configparser.ConfigParser()
 nginx_config = nginx.Conf()
 for subdir in subdirs:
-
     # Load the respective config file and get the respective env variables
     file = subdir + "/app.ini"
     host = os.environ.get(subdir + "_host")
@@ -39,9 +39,9 @@ for subdir in subdirs:
         nginx.Key('ssl_certificate', "/etc/nginx/" + subdir + "_cert.crt"),
         nginx.Key('ssl_certificate_key', "/etc/nginx/" + subdir + "_cert.key"),
         nginx.Location('/',
-            nginx.Key('include', 'uwsgi_params'),
-            nginx.Key('uwsgi_pass', subdir + ":" + port)
-        )
+                       nginx.Key('include', 'uwsgi_params'),
+                       nginx.Key('uwsgi_pass', subdir + ":" + port)
+                       )
     )
     nginx_config.add(server)
 

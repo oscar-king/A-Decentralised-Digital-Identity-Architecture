@@ -1,6 +1,7 @@
-from crypto_utils import signatures
-import uuid
 import _sha256
+import uuid
+
+from crypto_utils import signatures
 
 
 def test_sign_verify():

@@ -1,5 +1,6 @@
-from cp.workers import post_key_worker
 import testing.redis
+
+from cp.workers import post_key_worker
 
 
 class TestWorker:
