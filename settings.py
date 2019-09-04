@@ -1,6 +1,5 @@
 import configparser
 import os
-
 import dotenv
 import nginx
 
