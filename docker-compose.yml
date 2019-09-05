@@ -8,10 +8,42 @@ services:
       dockerfile: cp/Dockerfile
     container_name: cp
     restart: always
+#    depends_on:
+#      - redis
+#      - nginx
     environment:
       - APP_NAME=CertificationProvider
     expose:
       - ${cp_port}
+
+#  cp_scheduler:
+#    build:
+#      context: .
+#      dockerfile: redis/Dockerfile
+#    container_name: scheduler
+#    restart: always
+#    depends_on:
+#      - redis
+#      - cp_worker
+#      - nginx
+#    links:
+#      - redis:redis
+#    command:
+#      - rqscheduler
+#
+#  cp_worker:
+#    build:
+#      context: .
+#      dockerfile: redis/Dockerfile
+#    container_name: worker
+#    restart: always
+#    depends_on:
+#      - redis
+#      - nginx
+#    links:
+#      - redis:redis
+#    command:
+#      - rqworker
 
   ap:
     build:
@@ -19,6 +51,8 @@ services:
       dockerfile: ap/Dockerfile
     container_name: ap
     restart: always
+#    depends_on:
+#      - nginx
     environment:
       - APP_NAME=AuthenticationProvider
     expose:
@@ -30,6 +64,8 @@ services:
       dockerfile: service/Dockerfile
     container_name: service
     restart: always
+#    depends_on:
+#      - nginx
     environment:
       - APP_NAME=Service
     expose:
@@ -52,4 +88,19 @@ services:
       - "${ap_port}:${ap_port}"
       - "${cp_port}:${cp_port}"
       - "${service_port}:${service_port}"
+
+#  redis:
+#    image: redis:latest
+##    build:
+##      context: .
+##      dockerfile: redis/Dockerfile
+#    container_name: redis
+#    command: redis-server
+#    restart: always
+##    expose:
+##      - "6379"
+#    volumes:
+#      - .:/redis/data
+
+
 
