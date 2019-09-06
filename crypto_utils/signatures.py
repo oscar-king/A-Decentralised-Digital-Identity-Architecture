@@ -6,7 +6,7 @@ from hashlib import sha256
 from petlib.bn import Bn
 from petlib.ec import EcGroup
 from petlib.ecdsa import *
-
+# from Crypto.Signature import
 
 class Signature:
     """ Keys and functions to sign and verify a signature:

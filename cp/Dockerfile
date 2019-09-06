@@ -11,5 +11,7 @@ RUN pip install -r requirements.txt
 # Copy the current directory contents into the container at /app
 ADD cp /app
 
+RUN python setup.py
+
 # run the command to start uWSGI
 CMD ["uwsgi", "--ini", "app.ini"]
