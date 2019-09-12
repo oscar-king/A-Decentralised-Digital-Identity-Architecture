@@ -24,7 +24,7 @@ def test_sign_verify():
 def test_hashing():
     """
         Tests that the output of the Signatures class hashing method produces the expected hex-digest.
-        The test compares against inbuilt sha256
+        The client_test compares against inbuilt sha256
     """
     signer = signatures.Signature()
 

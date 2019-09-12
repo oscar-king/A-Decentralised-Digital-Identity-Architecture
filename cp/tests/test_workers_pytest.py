@@ -15,7 +15,7 @@ import testing.redis
 #         cls.rd.stop()
 #
 #     def test_add_retrieve_redis(self):
-#         keys = ["hello", "this", "is", "test"]
+#         keys = ["hello", "this", "is", "client_test"]
 #         self.pkw.__add_to_redis__(1, keys)
 #         res = self.pkw.__retrieve_from_redis__(1)
 #         assert keys == res

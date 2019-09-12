@@ -1,0 +1,21 @@
+<!-- templates/service_authentication.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Access Service</h3>
+    <div class="box">
+        <!--{% with messages = get_flashed_messages(category_filter=["signup"]) %}-->
+            <!--{% if messages %}-->
+                <!--<div class="notification is-danger">-->
+                    <!--{{ messages[0] }}. Go to <a href="{{ url_for('auth.login') }}">login page</a>.-->
+                <!--</div>-->
+            <!--{% endif %}-->
+        <!--{% endwith %}-->
+        <form method="POST" action="/access_service">
+            <button class="button is-block is-info is-large is-fullwidth">Access</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
