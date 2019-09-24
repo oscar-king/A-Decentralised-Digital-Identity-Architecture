@@ -1,10 +1,12 @@
 import functools
 import requests
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, json
+from flask import Blueprint, render_template, redirect, url_for, request, json, flash
 import os
+from time import localtime
 
-from user.models import SessionModel
-from user.utils.key_utils import generate_keys, blind_keys, blind_number
+from user.models.sessions import SessionModel
+from user.utils.key_utils import handle_challenge, blind_number
+import dateutil.parser
 
 main = Blueprint('main', __name__, template_folder='templates')
 
@@ -36,34 +38,46 @@ def index():
 
 # TODO add expiry checking
 @main.route('/generate_keys')
-def gen_keys():
+@token_required
+def gen_keys(headers):
     access_token = SessionModel.query.first()
     if access_token is None:
         return redirect(url_for('auth.login'))
-    return render_template('generate_keys.html')
+    return render_template('generate_keys.html', now=localtime())
 
 
 # TODO Save keys on the user side
 @main.route("/generate_keys", methods=['POST'])
 @token_required
-def generate_keys_post(headers):
+def challenge_response_post(headers):
+
     # Get the number of requested keys from the form, then generate the required number
-    number = request.form.get('number')
-    pubk, privk = generate_keys(number)
+    params = {
+        'number': int(request.form.get('number')),
+        'time': int(dateutil.parser.parse(request.form.get('time')).timestamp()),
+        'policy': int(request.form.get('policy'))
+    }
 
-    # Blind the keys
-    bpubk, privk = blind_keys(pubk, privk)
+    res = requests.get("http://127.0.0.1:5002/setup_keys", params=params, headers=headers)
 
-    # Post keys to CP
     try:
-        res = requests.post("http://127.0.0.1:5002/post_keys", data=bpubk, headers=headers)
-        if res.status_code == 201:
-            # Need to add save functionality here
-            return redirect(url_for('main.thanks'))
-        else:
+        # Blind the keys
+        es = handle_challenge(res.json(), params.get('policy'))
+
+        # Post keys to CP
+        try:
+            res = requests.post("http://127.0.0.1:5002/generate_proofs", json=json.dumps(es), headers=headers)
+            if res.status_code == 201:
+                # Need to add save functionality here
+                return redirect(url_for('main.thanks'))
+            else:
+                return render_template('generate_keys.html')
+        except Exception:
+            flash("Something went wrong, couldn't validate", "post_keys")
             return render_template('generate_keys.html')
     except Exception:
-        return "Something went wrong with the post"
+        flash(res.json().get("message"), "post_keys")
+        return render_template('generate_keys.html')
 
 
 @main.route("/access_service", methods=['GET'])

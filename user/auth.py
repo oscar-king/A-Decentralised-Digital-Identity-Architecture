@@ -1,7 +1,7 @@
 # auth.py
 import requests
 from flask import Blueprint, render_template, redirect, url_for, request, flash, json
-from user.models import SessionModel
+from user.models.sessions import SessionModel
 
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -20,14 +20,15 @@ def login_post():
         'remember': request.form.get('remember')
     }
 
-    res = requests.post("http://127.0.0.1:5002/login", json=json.dumps(data))
+    res = requests.post("http://localhost:5002/login", json=json.dumps(data))
     data = res.json()
     if res.status_code == 200:
+        SessionModel.delete()
         SessionModel(access_token=data.get('access'),
                      refresh_token=data.get('refresh')).save()
         return redirect(url_for('main.gen_keys'))
     else:
-        flash(data.get('content'), 'login')
+        flash(data.get('message'), 'login')
         return render_template('login.html')
 
 
@@ -43,15 +44,17 @@ def signup_post():
         'name': request.form.get('name'),
         'password': request.form.get('password')
     }
-    #
-    # if user: # if a user is found, we want to redirect back to signup page so user can try again
-    #     flash('Email address already exists', 'signup')
-    #     return redirect(url_for('auth.signup'))
+
+    res = requests.post("http://localhost:5002/signup", json=json.dumps(data))
+
+    data = res.json()
+    if res.status_code == 201:
+        return redirect(url_for('auth.login'))
+    else:
+        flash(data.get('message'), 'signup')
+        return render_template('signup.html')
 
 
-    return redirect(url_for('auth.login'))
-
-
-@auth.route('/logout', methods=['DELETE'])
+@auth.route('/logout')
 def logout():
     return redirect(url_for('main.index'))

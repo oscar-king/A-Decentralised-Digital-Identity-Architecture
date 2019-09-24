@@ -4,7 +4,7 @@ from datetime import datetime
 from redis import Redis
 from rq_scheduler import Scheduler
 
-from cp.ledger import ledger_utils
+from cp.utils import ledger_utils
 from crypto_utils import signatures
 
 
@@ -36,7 +36,7 @@ class PostKeyWorker:
             signer = signatures.Signature()  # Going to have to add s_k and p_k later
             sig = signer.sign_message(key)  # Need to add s_k
 
-            # This publishes it on the ledger (still needs to be implemented)
+            # This publishes it on the utils (still needs to be implemented)
             ledger_utils.publish_certificate(sig)
             if keys:
                 self.__add_to_redis__(key_id, keys)

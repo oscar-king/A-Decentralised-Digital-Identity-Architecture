@@ -1,11 +1,15 @@
 from charm.core.math.integer import integer
+from charm.toolbox.conversion import Conversion
 from charm.toolbox.integergroup import IntegerGroupQ
 from Crypto.Random.random import sample, randint
+from Crypto.PublicKey import ECC
+import json
+
 from crypto_utils.signatures import SignerBlindSignature, UserBlindSignature, BlindSignatureVerifier, hash_int
 import pytest
 
 
-@pytest.fixture(name="protocol", scope="class")
+@pytest.fixture(name="protocol", scope="function")
 def sig_manager():
     class Protocol:
         def __init__(self):
@@ -22,7 +26,8 @@ def sig_manager():
             self.tmp2, self.tmp3, self.tmp4 = None, None, None
 
         def setup_method(self):
-            self.message = integer(randint(0, 99999999999))
+            key = ECC.generate(curve='P-256')
+            self.message = Conversion.OS2IP(key.public_key().export_key(format='DER'))
             challenge = self.signer.get_challenge()
             self.e = self.user.challenge_response(challenge, self.message)
             proofs = self.signer.get_proofs(self.e)
@@ -68,7 +73,8 @@ class TestBlindSignatures:
 
             # This should be equal
             p1 = (protocol.omega + protocol.delta) % protocol.verify.q
-            p2 = hash_int([protocol.zeta, protocol.zeta1, protocol.tmp1, protocol.tmp2, protocol.tmp3, protocol.tmp4, protocol.message]) % protocol.verify.q
+            p2 = hash_int([protocol.zeta, protocol.zeta1, protocol.tmp1, protocol.tmp2,
+                           protocol.tmp3, protocol.tmp4, protocol.message]) % protocol.verify.q
 
             assert p1 == p2
 
@@ -79,9 +85,19 @@ class TestBlindSignatures:
 
             # This should be equal
             p1 = (protocol.omega + protocol.delta) % protocol.verify.q
-            p2 = hash_int([protocol.zeta, protocol.zeta1, protocol.tmp1, protocol.tmp2, protocol.tmp3, protocol.tmp4, protocol.message+1]) % protocol.verify.q
+            p2 = hash_int([protocol.zeta, protocol.zeta1, protocol.tmp1, protocol.tmp2,
+                           protocol.tmp3, protocol.tmp4, protocol.message+1]) % protocol.verify.q
 
             assert p1 != p2
+
+    def test_blind_sign_encode_decode(self, protocol):
+        protocol.setup_method()
+        protocol.values()
+
+        encoding = protocol.user.encode()
+        user_sig = UserBlindSignature().decode(encoding)
+
+        assert protocol.user == user_sig
 
     def test_hash_int_list(self):
         for i in range(1000):
@@ -99,3 +115,10 @@ class TestBlindSignatures:
             assert ds4 == ds4c
             assert ds3 != ds4
 
+    def test_encode_decode(self, protocol):
+
+        signer = protocol.signer
+        encoded = signer.encode()
+        decoded = SignerBlindSignature().decode(encoded)
+
+        assert signer == decoded

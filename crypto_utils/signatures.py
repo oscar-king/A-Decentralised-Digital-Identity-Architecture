@@ -9,13 +9,16 @@
 * type:           signature
 * setting:        integer groups
 """
+import json
 
 from charm.toolbox.integergroup import integer, IntegerGroupQ, randomBits
 from Crypto.Hash.SHA256 import SHA256Hash
 from charm.toolbox.integergroup import IntegerGroupQ
 from charm.toolbox.conversion import Conversion
 import hashlib
+from enum import Enum
 
+from crypto_utils.conversions import SigConversion
 
 def SHA1(bytes1):
     s1 = hashlib.new('sha256')
@@ -50,17 +53,76 @@ def mulinv(a, b):
     return x % b
 
 
-class UserBlindSignature:
-    def __init__(self, input):
-        self.p = input.get('p')
-        self.q = input.get('q')
-        self.g = input.get('g')
-        self.y = input.get('y')
-        self.h = input.get('h')
-        self.z = input.get('z')
-        self.group = IntegerGroupQ()
-        self.group.setparam(p=self.p, q=self.q)
-        self.db = {}
+class BlindSigner:
+    """
+    Should not be subclassed. Decode only works on the two currently defined subclasses.
+    """
+    def __eq__(self, other):
+        s_dict = {**self.__dict__}
+        o_dict = {**other.__dict__}
+        s_group = str(s_dict.pop("group"))
+        o_group = str(o_dict.pop("group"))
+        return (s_dict == o_dict) and (s_group == o_group)
+
+    def __encode_dict__(self, dict_):
+        tmp = {**dict_}
+        for key in tmp:
+            if tmp.get(key) is not None:
+                tmp[key] = SigConversion.modint2strlist(tmp.get(key))
+            else:
+                tmp[key] = 'null'
+        return tmp
+
+    def encode(self):
+        tmp = {**self.__dict__}
+        tmp.pop("group")
+        db = tmp.get('db')
+        db = self.__encode_dict__(db) if db is not None else None
+        tmp = self.__encode_dict__(tmp)
+        if db is not None:
+            tmp['db'] = db
+        return json.dumps(tmp)
+
+    def decode(self, jsn):
+        obj = json.loads(jsn)
+        db = obj.pop('db') if obj.get('db') is not None else None
+
+        if isinstance(self, SignerBlindSignature):
+            new = SignerBlindSignature(IntegerGroupQ())
+        elif isinstance(self, UserBlindSignature):
+            new = UserBlindSignature()
+        else:
+            raise Exception("Unexpected argument")
+
+        for key in obj:
+            if obj[key] == 'null':
+                attr_val = None
+            else:
+                attr_val = SigConversion.strlist2modint(obj[key])
+            setattr(new, key, attr_val)
+        if db:
+            for key in db:
+                db[key] = SigConversion.strlist2modint(db[key])
+            setattr(new, 'db', db)
+        new.group = IntegerGroupQ()
+        new.group.setparam(p=new.p, q=new.q)
+        return new
+
+
+class UserBlindSignature(BlindSigner):
+    def __init__(self, input_=None):
+        if input_ is not None:
+            self.p = input_.get('p')
+            self.q = input_.get('q')
+            self.g = input_.get('g')
+            self.y = input_.get('y')
+            self.h = input_.get('h')
+            self.z = input_.get('z')
+            self.group = IntegerGroupQ()
+            self.group.setparam(p=self.p, q=self.q)
+            self.db = input_.get('db')
+            if self.db is None:
+                self.db = {}
 
     def __store__(self, *args):
         for i in args:
@@ -90,9 +152,6 @@ class UserBlindSignature:
         a = input.get('a')
         b1 = input.get('b1')
         b2 = input.get('b2')
-
-        # if not (self.group.isMember(b1) and self.group.isMember(b2)):
-        #     return None
 
         msg = integer(Conversion.OS2IP(SHA1(Conversion.IP2OS(rnd))))
         z1 = (msg ** ((self.p - 1) / self.q)) % self.p
@@ -151,9 +210,9 @@ class UserBlindSignature:
                 'sigma1': sigma1, 'sigma2': sigma2, 'delta': delta, 'mu': mu}
 
 
-class SignerBlindSignature:
-    def __init__(self, groupObj, p=0, q=0, secparam=0):
-        self.group = groupObj
+class SignerBlindSignature(BlindSigner):
+    def __init__(self, group=None, p=0, q=0, secparam=256):
+        self.group = group if group is not None else IntegerGroupQ()
         self.group.p, self.group.q, self.group.r = p, q, 2
 
         if self.group.p == 0 or self.group.q == 0:
@@ -185,6 +244,9 @@ class SignerBlindSignature:
     # Signer state 1
     def get_public_key(self):
         return {'p': self.p, 'q': self.q, 'g': self.g, 'y': self.y, 'h': self.h, 'z': self.z}
+
+    def get_private_key(self):
+        return self.x
 
     def get_challenge(self):
         rnd = randomBits(80)

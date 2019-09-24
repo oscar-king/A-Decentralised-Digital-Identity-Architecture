@@ -9,7 +9,7 @@
         {% with messages = get_flashed_messages(category_filter=["login"]) %}
             {% if messages %}
                 <div class="notification is-danger">
-                    {{ messages[0] }}. Go to <a href="{{ url_for('auth.signup') }}">login page</a>.
+                    {{ messages[0] }}. Go to <a href="{{ url_for('auth.signup') }}">Signup page</a>.
                 </div>
             {% endif %}
         {% endwith %}

@@ -1,6 +1,6 @@
 def publish_certificate(certificate):
     """
-    This method will be the method that a Certification Provider can call to publish a certificate to the ledger.
+    This method will be the method that a Certification Provider can call to publish a certificate to the utils.
     :param certificate:
     :return:
     """

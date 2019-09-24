@@ -20,5 +20,7 @@ class SessionModel(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def delete(self):
-        pass
+    @staticmethod
+    def delete():
+        db.session.query(SessionModel).delete()
+        db.session.commit()

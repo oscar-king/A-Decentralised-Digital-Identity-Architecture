@@ -6,8 +6,11 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_jwt_extended import JWTManager
+from sqlalchemy.pool import StaticPool
 
 # init SQLAlchemy so we can use it later in our models
+from sqlalchemy import create_engine
+
 db = SQLAlchemy()
 jwt = JWTManager()
 
@@ -17,8 +20,15 @@ def create_app():
 
     app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_HEADER_NAME'] = 'Authorization'
-
+    # engine = create_engine('sqlite://',
+    #                        connect_args={'check_same_thread': False},
+    #                        poolclass=StaticPool)
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'connect_args': {'check_same_thread': False},
+        'poolclass': StaticPool
+    }
     # Configure application to store JWTs in cookies
     # app.config['JWT_TOKEN_LOCATION'] = ['cookies']
 
@@ -67,6 +77,10 @@ def create_app():
     def load_user(user_id):
         # since the user_id is just the primary key of our user table, use it in the query for the user
         return UserModel.query.get(int(user_id))
+
+    @jwt.user_loader_callback_loader
+    def user_loader_callback(identity):
+        return UserModel.query.get(identity)
 
     # blueprint for auth routes in our app
     from cp.auth import auth as auth_blueprint
