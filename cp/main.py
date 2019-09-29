@@ -4,6 +4,7 @@ import os
 
 from cp.models.PolicyModel import PolicyModel
 from cp.models.UserModel import UserModel
+from cp.utils.ledger_utils import publish_pool
 from cp.utils.sig_utils import setup_key_handler, gen_proofs_handler
 from cp.workers import post_key_worker
 
@@ -114,6 +115,7 @@ def generate_proofs():
         })
         return resp, 400
     else:
+        #TODO this should be removed in production, the user should not receive proofs immediately on this request
         resp = json.dumps(gen_proofs_handler(policy, es))
     # worker = post_key_worker.PostKeyWorker(1)
     # worker.schedule_key_publishing("Key", ["This", "is", "a", "client_test"])

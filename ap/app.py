@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request, Response, json
 
+
 from ap.models import UserNonce
 from ap.utils.ledger_utils import get_certs
 from ap import db, create_app
@@ -59,7 +60,6 @@ def prove_owner():
             userNonce = UserNonce()
 
 
-
 @app.route("/request_sig", methods=['POST'])
 def request_sig():
     return "Need to implement this"
@@ -71,4 +71,4 @@ def create_db():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(port=5001)

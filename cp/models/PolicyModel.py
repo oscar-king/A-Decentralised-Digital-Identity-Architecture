@@ -1,7 +1,8 @@
 from sqlalchemy.orm import relationship
 
+from cp.models import KeyModel
 from cp import db
-from cp.models.KeyModel import KeyModel
+from cp.models.PolicyPoolModel import PolicyPoolModel
 
 
 class PolicyModel(db.Model):
@@ -12,6 +13,7 @@ class PolicyModel(db.Model):
     lifetime = db.Column(db.Integer)
     description = db.Column(db.String)
     keys = relationship("KeyModel")
+    pools = relationship("PolicyPoolModel")
 
     def __init__(self, publication_interval, lifetime, description):
         self.publication_interval = publication_interval
@@ -24,9 +26,25 @@ class PolicyModel(db.Model):
     def __str__(self):
         return "Policy(policy='%s', description='%s')" % (self.policy, self.description)
 
-    def get_key(self, timestamp):
-        # return KeyModel.query.join(PolicyModel).filter(KeyModel.policy == self.policy).all()
-        for x in self.keys:
+    def get_key(self, timestamp: int) -> KeyModel:
+        """
+            Find a policy key model based on the timestamp given.
+            :param timestamp: (int)
+            :return: (KeyModel) or None
+        """
+        return self.__get_from_list(self.keys, timestamp)
+
+    def get_pool(self, timestamp: int) -> KeyModel:
+        pool = self.__get_from_list(self.pools, timestamp)
+        if pool is None:
+            pool = PolicyPoolModel(self.policy, timestamp)
+            pool.save_to_db()
+            self.save_to_db()
+        return pool
+
+    @staticmethod
+    def __get_from_list(ls, timestamp):
+        for x in ls:
             if x.timestamp == timestamp:
                 return x
         return None

@@ -22,7 +22,7 @@ def index():
 @app.route("/request")
 def request():
     y = request_handler()
-    return json.dumps(y)
+    return json.dumps(y), 201
 
 
 # TODO Need to implement this
@@ -39,7 +39,7 @@ def response():
 def purge_db():
     db.session.query(User).delete()
     db.session.commit()
-    return "Purged"
+    return "Purged", 200
 
 
 @app.route("/db")
@@ -52,4 +52,4 @@ def show_all():
 
 if __name__ == '__main__':
     db.create_all(app=app)
-    app.run()
+    app.run(port=5003)

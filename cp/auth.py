@@ -73,7 +73,7 @@ def signup_post():
     # add the new user to the database
     new_user.save_to_db()
 
-    return "Created", 201
+    return jsonify({'message': 'Created.'}), 201
 
 
 @auth.route('/logout', methods=['DELETE'])
@@ -82,7 +82,7 @@ def logout():
     jti = get_raw_jwt()['jti']
     try:
         # Revoke
-        RevokedTokenModel(jti=jti).add()
+        RevokedTokenModel(jti=jti).save_to_db()
 
         # Unset cookies
         resp = jsonify({'logout': True})
@@ -99,7 +99,7 @@ def logout_refresh():
     jti = get_raw_jwt()['jti']
     try:
         # Revoke
-        RevokedTokenModel(jti=jti).add()
+        RevokedTokenModel(jti=jti).save_to_db()
 
         # Unset cookies
         resp = jsonify({'logout': True})

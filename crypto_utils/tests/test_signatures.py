@@ -1,9 +1,9 @@
 from charm.core.math.integer import integer
+from Crypto import Random as rd
 from charm.toolbox.conversion import Conversion
 from charm.toolbox.integergroup import IntegerGroupQ
-from Crypto.Random.random import sample, randint
+from Crypto.Random.random import sample
 from Crypto.PublicKey import ECC
-import json
 
 from crypto_utils.signatures import SignerBlindSignature, UserBlindSignature, BlindSignatureVerifier, hash_int
 import pytest
@@ -25,9 +25,9 @@ def sig_manager():
             self.delta, self.mu, self.tmp1 = None, None, None
             self.tmp2, self.tmp3, self.tmp4 = None, None, None
 
-        def setup_method(self):
+        def setup_method(self, message=None):
             key = ECC.generate(curve='P-256')
-            self.message = Conversion.OS2IP(key.public_key().export_key(format='DER'))
+            self.message = Conversion.OS2IP(key.public_key().export_key(format='DER')) if message is None else message
             challenge = self.signer.get_challenge()
             self.e = self.user.challenge_response(challenge, self.message)
             proofs = self.signer.get_proofs(self.e)

@@ -85,13 +85,13 @@ def access_service():
     return render_template('service_authenticate.html')
 
 
-@main.route("/access_service")
+@main.route("/access_service", methods=['POST'])
 def access_service_post():
     # Get nonce from service
-    y = requests.get("http://127.0.0.1:5003/request")
+    y = requests.get("http://127.0.0.1:5003/request").json()
 
     # Blind nonce
-    blinded_y = blind_number(y)
+    # blinded_y = blind_number(y)
 
     # Request-certs CP_i
 
@@ -99,7 +99,7 @@ def access_service_post():
 
     # Request CP_i(x_i), blinded_y
 
-    pass
+    return y
 
 
 @main.route("/request_cert")

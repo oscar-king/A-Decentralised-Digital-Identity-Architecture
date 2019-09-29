@@ -34,10 +34,6 @@ class UserModel(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password, password)
 
-    def save_to_db(self):
-        db.session.add(self)
-        db.session.commit()
-
     def delete(self):
         db.session.delete(self)
         db.session.commit()
@@ -47,3 +43,7 @@ class UserModel(UserMixin, db.Model):
             if x.timestamp == timestamp and x.policy == policy:
                 return x
         return None
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()

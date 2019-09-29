@@ -27,34 +27,34 @@ class PostKeyWorker:
         data = self.rd.get(str(obj_id))
         return json.loads(data, encoding='utf-8')
 
-    def publish_certificate(self, key_id):
-        # Get keys from redis, pop the first from the list, then save the remainder
-        keys = self.__retrieve_from_redis__(key_id)
-        if keys:
-            key = keys.pop(0)
+    # def publish_certificate(self, key_id):
+    #     # Get keys from redis, pop the first from the list, then save the remainder
+    #     keys = self.__retrieve_from_redis__(key_id)
+    #     if keys:
+    #         key = keys.pop(0)
+    #
+    #         signer = signatures.Signature()  # Going to have to add s_k and p_k later
+    #         sig = signer.sign_message(key)  # Need to add s_k
+    #
+    #         # This publishes it on the utils (still needs to be implemented)
+    #         ledger_utils.publish_pool(sig)
+    #         if keys:
+    #             self.__add_to_redis__(key_id, keys)
+    #         else:
+    #             self.rd.delete(key_id)
 
-            signer = signatures.Signature()  # Going to have to add s_k and p_k later
-            sig = signer.sign_message(key)  # Need to add s_k
-
-            # This publishes it on the utils (still needs to be implemented)
-            ledger_utils.publish_certificate(sig)
-            if keys:
-                self.__add_to_redis__(key_id, keys)
-            else:
-                self.rd.delete(key_id)
-
-    def schedule_key_publishing(self, keyset_id, keys, start_time=None):
-        self.__add_to_redis__(keyset_id, keys)
-        time = datetime.utcnow()
-
-        if start_time is not None:
-            time = start_time
-
-        self.scheduler.schedule(
-            id=keyset_id,
-            scheduled_time=time,
-            func=self.publish_certificate,
-            args=[keyset_id],
-            interval=self.interval,
-            repeat=len(keys)
-        )
+    # def schedule_key_publishing(self, keyset_id, keys, start_time=None):
+    #     self.__add_to_redis__(keyset_id, keys)
+    #     time = datetime.utcnow()
+    #
+    #     if start_time is not None:
+    #         time = start_time
+    #
+    #     self.scheduler.schedule(
+    #         id=keyset_id,
+    #         scheduled_time=time,
+    #         func=self.publish_certificate,
+    #         args=[keyset_id],
+    #         interval=self.interval,
+    #         repeat=len(keys)
+    #     )
