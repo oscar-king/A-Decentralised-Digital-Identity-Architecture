@@ -1,12 +1,10 @@
-from charm.core.math.integer import integer
-from Crypto import Random as rd
+import pytest
+from Crypto.PublicKey import ECC
+from Crypto.Random.random import sample
 from charm.toolbox.conversion import Conversion
 from charm.toolbox.integergroup import IntegerGroupQ
-from Crypto.Random.random import sample
-from Crypto.PublicKey import ECC
 
 from crypto_utils.signatures import SignerBlindSignature, UserBlindSignature, BlindSignatureVerifier, hash_int
-import pytest
 
 
 @pytest.fixture(name="protocol", scope="function")
@@ -122,3 +120,12 @@ class TestBlindSignatures:
         decoded = SignerBlindSignature().decode(encoded)
 
         assert signer == decoded
+
+    def test_gen_then_verify(self, protocol):
+        protocol.setup_method()
+        protocol.values()
+
+        signature = protocol.sig
+        message = protocol.message
+
+        assert protocol.verify.verify(signature, message)

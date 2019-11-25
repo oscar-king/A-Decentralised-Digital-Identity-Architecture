@@ -1,8 +1,6 @@
-import json
-
-from cp import db
 from sqlalchemy import ForeignKey
 
+from cp import db
 from crypto_utils.conversions import SigConversion
 
 

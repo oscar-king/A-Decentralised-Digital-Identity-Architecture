@@ -1,18 +1,18 @@
 import json
 
+from Crypto.Hash.SHA256 import SHA256Hash
 from charm.toolbox.conversion import Conversion
 from charm.toolbox.integergroup import IntegerGroupQ
 from flask_jwt_extended import current_user
 from cp.models.KeyModel import KeyModel
 from cp.models.PolicyModel import PolicyModel
 from cp.models.SigVarsModel import SigVarsModel
-from cp.utils.ledger_utils import publish_pool
+from cp.models.UserModel import UserModel
 from crypto_utils.signatures import SignerBlindSignature
 from crypto_utils.conversions import SigConversion
-from _md5 import md5
 
 
-def setup_key_handler(timestamp, number, policy):
+def setup_key_handler(timestamp: int, number: int, policy: int):
     """
     :param timestamp: (int) Timestamp of when the first knowledge proofs should be available on the ledger
     :param number: (int) Number of requested credentials
@@ -21,12 +21,15 @@ def setup_key_handler(timestamp, number, policy):
     """
     resp = []
     policy = PolicyModel.query.get(policy)
+    sigvars = UserModel.query.get(current_user.id).get_sigvar(timestamp, policy)
     if not policy:
         raise Exception("Couldn't find policy")
+    if sigvars:
+        raise Exception("Key already exists")
 
     for i in range(0, number):
         # Retrieve key for particular timestamp and policy combination
-        time = timestamp + (i * policy.publication_interval)
+        time = timestamp + (i * policy.publication_interval * 60)  # publication_interval is in minutes
 
         # If no KeyModel exists for a given policy at a set time we create one
         key_model = policy.get_key(time)
@@ -61,7 +64,6 @@ def setup_key_handler(timestamp, number, policy):
     return resp
 
 
-# TODO add the responses to the ledger
 def gen_proofs_handler(policy, es):
     # Get policy from database and setup list
     policy = PolicyModel.query.get(policy)
@@ -88,10 +90,11 @@ def gen_proofs_handler(policy, es):
             # Do the appropriate conversions so that we can serialize
             x['e'] = SigConversion.strlist2modint(x.get('e'))
             proofs = SigConversion.convert_dict_strlist(signer.get_proofs(x))
-            hash_proof = Conversion.OS2IP(md5(json.dumps(proofs).encode()).digest())
+            hash_tmp = SHA256Hash().new(json.dumps(proofs).encode())
+            hash_proof = Conversion.OS2IP(hash_tmp.digest())
 
             # Add proofs to the pool
-            pool.append(proofs)
+            pool.append_to_pool(proofs)
 
             resp.append({
                 'timestamp': timestamp,

@@ -1,13 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, json, Response, jsonify
-from flask_jwt_extended import jwt_required
 import os
+
+import dateutil.parser
+from flask import Blueprint, render_template, redirect, url_for, request, flash, json, jsonify
+from flask_jwt_extended import jwt_required
 
 from cp.models.PolicyModel import PolicyModel
 from cp.models.UserModel import UserModel
 from cp.utils.ledger_utils import publish_pool
 from cp.utils.sig_utils import setup_key_handler, gen_proofs_handler
-from cp.workers import post_key_worker
-
 
 main = Blueprint('main', __name__, template_folder='templates')
 
@@ -55,7 +55,7 @@ def gen_policies_post():
     ds = request.form.get('description')
 
     PolicyModel(publication_interval=i, lifetime=life, description=ds).save_to_db()
-    flash("Policy has been added", 'gen_policies')
+    flash("Policy has been added", 'gen_policies_success')
     return redirect(url_for('main.gen_policies'))
 
 
@@ -92,12 +92,23 @@ def setup_keys():
 
             return resp, 500
 
+@main.route('/publish_policies')
+def publish():
+    return render_template('publish.html')
 
 
-# @main.route('/generate_proofs')
-# @jwt_required
-# def post_keys():
-#     return render_template('post_keys.html')
+@main.route('/publish_policies', methods=['POST'])
+def publish_policies():
+    policy = int(request.form.get('policy'))
+    timestamp = int(dateutil.parser.parse(request.form.get('timestamp')).timestamp())
+
+    if publish_pool(policy, timestamp):
+        flash("Proofs published", 'pub_policies_success')
+        return redirect(url_for('main.publish_policies'))
+    else:
+        flash("Proofs not published. Possibly because the policy does not exist, incorrect timestamp, or API error",
+              'pub_policies_fail')
+        return redirect(url_for('main.publish_policies'))
 
 
 # TODO Link up worker so that these keys are posted onto the blockchain. Return needs to be the (CP_1, and the interval)
@@ -115,11 +126,7 @@ def generate_proofs():
         })
         return resp, 400
     else:
-        #TODO this should be removed in production, the user should not receive proofs immediately on this request
         resp = json.dumps(gen_proofs_handler(policy, es))
-    # worker = post_key_worker.PostKeyWorker(1)
-    # worker.schedule_key_publishing("Key", ["This", "is", "a", "client_test"])
-    # return redirect(url_for('main.thanks'))
         return resp, 201
 
 

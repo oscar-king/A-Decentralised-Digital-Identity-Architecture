@@ -34,7 +34,7 @@ class PolicyModel(db.Model):
         """
         return self.__get_from_list(self.keys, timestamp)
 
-    def get_pool(self, timestamp: int) -> KeyModel:
+    def get_pool(self, timestamp: int) -> PolicyPoolModel:
         pool = self.__get_from_list(self.pools, timestamp)
         if pool is None:
             pool = PolicyPoolModel(self.policy, timestamp)
@@ -43,7 +43,7 @@ class PolicyModel(db.Model):
         return pool
 
     @staticmethod
-    def __get_from_list(ls, timestamp):
+    def __get_from_list(ls, timestamp) -> db.Model:
         for x in ls:
             if x.timestamp == timestamp:
                 return x

@@ -1,7 +1,3 @@
-from cp.workers import post_key_worker
-import testing.redis
-
-
 # class TestWorker:
 #     rd = None
 #

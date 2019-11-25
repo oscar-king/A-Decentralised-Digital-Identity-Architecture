@@ -1,6 +1,7 @@
 from Crypto import Random as rd
+
+from crypto_utils.signatures import BlindSignatureVerifier
 from service.models import User
-from service import db
 
 
 def request_handler():
@@ -20,5 +21,6 @@ def request_handler():
     return y
 
 
-def response_handler(response):
-    pass
+def verify_sig(key: dict, sig: dict, y: str) -> bool:
+    verif = BlindSignatureVerifier(key)
+    return verif.verify(sig, int(y, 16))

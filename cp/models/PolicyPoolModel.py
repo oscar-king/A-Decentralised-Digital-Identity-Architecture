@@ -1,9 +1,10 @@
 import json
+import sys
 
+from Crypto.Hash.SHA256 import SHA256Hash
 from charm.toolbox.conversion import Conversion
 from sqlalchemy import ForeignKey, JSON
 from cp import db
-from _md5 import md5
 
 
 class PolicyPoolModel(db.Model):
@@ -16,17 +17,28 @@ class PolicyPoolModel(db.Model):
         self.timestamp = timestamp
         self.pool_ = []
 
-    def __hash__(self):
-        return Conversion.OS2IP(md5(json.dumps(self.pool).encode()).digest())
+    def get_pool_hash(self):
+        print(type(self.pool))
+        return PolicyPoolModel.hash_util(self.pool)
+
+    @staticmethod
+    def hash_util(d: dict or list) -> int:
+        try:
+            assert type(d) == dict or type(d) == list
+        except AssertionError:
+            print(type(d), file=sys.stderr)
+        hashable = json.dumps(d)
+        hash_tmp = SHA256Hash().new(hashable.encode())
+        return Conversion.OS2IP(hash_tmp.digest())
 
     @property
-    def pool(self):
+    def pool(self) -> list:
         res = list()
         pool = json.loads(self.pool_)
         for x in pool:
+            x = json.loads(x)
             data = {
-              "$class": "digid.Proof",
-              "hash": Conversion.OS2IP(md5(x.encode()).digest()),
+              "hash": PolicyPoolModel.hash_util(x),
               "proofs": x
             }
             res.append(data)
@@ -34,9 +46,9 @@ class PolicyPoolModel(db.Model):
 
     @pool.setter
     def pool(self, proofs: dict):
-        self.append(proofs)
+        self.append_to_pool(proofs)
 
-    def append(self, proofs: dict):
+    def append_to_pool(self, proofs: dict):
         tmp = json.loads(str(self.pool_))
         tmp.append(json.dumps(proofs))
         self.pool_ = json.dumps(tmp)

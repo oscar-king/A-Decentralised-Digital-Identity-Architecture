@@ -9,16 +9,16 @@
 * type:           signature
 * setting:        integer groups
 """
+import hashlib
 import json
 
-from charm.toolbox.integergroup import integer, IntegerGroupQ, randomBits
 from Crypto.Hash.SHA256 import SHA256Hash
-from charm.toolbox.integergroup import IntegerGroupQ
 from charm.toolbox.conversion import Conversion
-import hashlib
-from enum import Enum
+from charm.toolbox.integergroup import IntegerGroupQ
+from charm.toolbox.integergroup import integer, randomBits
 
 from crypto_utils.conversions import SigConversion
+
 
 def SHA1(bytes1):
     s1 = hashlib.new('sha256')
@@ -185,12 +185,12 @@ class UserBlindSignature(BlindSigner):
 
         return {'e': e}
 
-    def gen_signature(self, input):
-        r = input.get('r')
-        c = input.get('c')
-        d = input.get('d')
-        s1 = input.get('s1')
-        s2 = input.get('s2')
+    def gen_signature(self, proofs: dict) -> dict:
+        r = proofs.get('r')
+        c = proofs.get('c')
+        d = proofs.get('d')
+        s1 = proofs.get('s1')
+        s2 = proofs.get('s2')
 
         (zeta, zeta1, z, z1) = self.__get__(['zeta', 'zeta1', 'zeta2', 'z1'])
         (t1, t2, t3, t4, t5) = self.__get__(['t1', 't2', 't3', 't4', 't5'])
@@ -280,7 +280,7 @@ class SignerBlindSignature(BlindSigner):
 
 
 class BlindSignatureVerifier:
-    def __init__(self, pubk):
+    def __init__(self, pubk: dict):
         self.p = pubk.get('p')
         self.q = pubk.get('q')
         self.g = pubk.get('g')
@@ -306,6 +306,6 @@ class BlindSignatureVerifier:
         tmp4 = (self.z ** mu) * (zeta ** delta) % self.p
 
         p1 = (omega + delta) % self.q
-        p2 = self.group.hash([zeta, zeta1, tmp1, tmp2, tmp3, tmp4, message])
+        p2 = integer(hash_int([zeta, zeta1, tmp1, tmp2, tmp3, tmp4, message])) % self.q
 
         return p1 == p2

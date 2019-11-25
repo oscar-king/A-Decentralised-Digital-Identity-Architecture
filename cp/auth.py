@@ -1,10 +1,11 @@
 # auth.py
 from datetime import timedelta
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash, Response, json, jsonify
-from flask_jwt_extended import create_access_token, create_refresh_token, get_csrf_token, set_access_cookies, \
-    set_refresh_cookies, unset_jwt_cookies, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt
-from flask_login import login_user, logout_user
+from flask import Blueprint, request, flash, jsonify
+from flask_jwt_extended import create_access_token, create_refresh_token, set_access_cookies, \
+    unset_jwt_cookies, jwt_required, jwt_refresh_token_required, get_jwt_identity, get_raw_jwt
+from flask_login import logout_user
+
 from cp.models.RevokedTokenModel import RevokedTokenModel
 from cp.models.UserModel import UserModel
 
@@ -13,7 +14,7 @@ auth = Blueprint('auth', __name__, template_folder='templates')
 
 @auth.route('/login', methods=['POST'])
 def login_post():
-    data = json.loads(request.json)
+    data = request.json
 
     email = data.get('email')
     password = data.get('password')
@@ -54,7 +55,7 @@ def refresh():
 
 @auth.route('/signup', methods=['POST'])
 def signup_post():
-    data = json.loads(request.json)
+    data = request.json
 
     email = data.get('email')
     name = data.get('name')
@@ -65,7 +66,7 @@ def signup_post():
 
     # if a user is found, we want to redirect back to signup page so user can try again
     if user:
-        return jsonify({'message': 'User already exists.'}), 401
+        return jsonify({'message': 'User already exists'}), 401
 
     # create new user with the form data. Password is hashed automatically.
     new_user = UserModel(email=email, name=name, password=password)

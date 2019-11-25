@@ -1,25 +1,22 @@
 # init.py
-import datetime
 
-import rq_dashboard
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
 from flask_jwt_extended import JWTManager
+from flask_login import LoginManager
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.pool import StaticPool
 
 # init SQLAlchemy so we can use it later in our models
-from sqlalchemy import create_engine
 
 db = SQLAlchemy()
 jwt = JWTManager()
-
+host = "0.0.0.0"
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
 
     app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cp.sqlite'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_HEADER_NAME'] = 'Authorization'
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -37,9 +34,6 @@ def create_app():
     def check_if_token_in_blacklist(decrypted_token):
         jti = decrypted_token['jti']
         return RevokedTokenModel.is_jti_blacklisted(jti)
-
-    app.config.from_object(rq_dashboard.default_settings)
-    app.register_blueprint(rq_dashboard.blueprint, url_prefix="/rq")
 
     db.init_app(app)
     jwt.init_app(app)

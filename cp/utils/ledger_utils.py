@@ -1,12 +1,13 @@
 import json
+import os, dotenv
 import requests
 from cp.models.PolicyModel import PolicyModel
-
-
-# TODO Certification Provider ID currently hardcoded in the value of the owner key needs to be changed.
 from crypto_utils.conversions import SigConversion
 
+dotenv.load_dotenv('../.env')
 
+
+# TODO delete pool after
 def publish_pool(policy: int, timestamp: int) -> bool:
     """
 
@@ -15,22 +16,24 @@ def publish_pool(policy: int, timestamp: int) -> bool:
     :return:
     """
     pol = PolicyModel.query.get(policy)
-    pool = pol.get_pool(timestamp)
-    key = pol.get_key(timestamp)
+    pool = pol.get_pool(timestamp) if pol is not None else None
+    key = pol.get_key(timestamp) if pol is not None else None
     res = requests.get("http://localhost:3002/api/ProofBlock")
-    if res.status_code == 200 and key is not None:
+    cpid = os.environ.get('cp_dlt_id')
+    if (res.status_code == 200) and (key is not None) and (pol is not None):
         data = {
             "$class": "digid.ProofBlock",
             "assetId": len(res.json()),
-            "owner": "resource:digid.CertificationProvider#5488",
+            "owner": "resource:digid.CertificationProvider#" + cpid,
             "timestamp": timestamp,
+            "lifetime": pol.lifetime,
             "key": {
                 "$class": "digid.PublicKey",
-                "key": json.dumps(SigConversion.convert_dict_strlist(key.get_public_key())),
+                "key": str(json.dumps(SigConversion.convert_dict_strlist(key.get_public_key()))),
                 "policy": policy
             },
-            "proofHash": hash(pool),
-            "proofs": pool.pool
+            "proofHash": str(pool.get_pool_hash()),
+            "proofs": str(json.dumps(pool.pool))
         }
 
         res = requests.post("http://localhost:3002/api/ProofBlock", json=data)

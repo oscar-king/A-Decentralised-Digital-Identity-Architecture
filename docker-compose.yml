@@ -1,46 +1,18 @@
 version: "3.7"
 
 services:
-
   cp:
     build:
       context: .
       dockerfile: cp/Dockerfile
     container_name: cp
     restart: always
-#    depends_on:
-#      - redis
     environment:
       - APP_NAME=CertificationProvider
     expose:
       - ${cp_port}
-
-#  cp_scheduler:
-#    build:
-#      context: .
-#      dockerfile: redis/Dockerfile
-#    container_name: scheduler
-#    restart: always
-#    depends_on:
-#      - redis
-#      - cp_worker
-#      - nginx
-#    links:
-#      - redis:redis
-#    command:
-#      - "rqscheduler --host redis --port 6379"
-
-#  cp_worker:
-#    build:
-#      context: .
-#      dockerfile: redis/Dockerfile
-#    container_name: worker
-#    restart: always
-#    depends_on:
-#      - redis
-#      - nginx
-#    command:
-#      - "rq worker --url redis:6379"
+    ports:
+      - "${cp_port}:5000"
 
   ap:
     build:
@@ -52,6 +24,8 @@ services:
       - APP_NAME=AuthenticationProvider
     expose:
       - ${ap_port}
+    ports:
+      - "${ap_port}:5000"
 
   service:
     build:
@@ -63,34 +37,36 @@ services:
       - APP_NAME=Service
     expose:
       - ${service_port}
-
-  nginx:
-    build: ./nginx
-    container_name: nginx
-    restart: always
-    volumes:
-      - ./cp/cp_cert.crt:/etc/nginx/cp_cert.crt
-      - ./cp/cp_cert.key:/etc/nginx/cp_cert.key
-      - ./cp/cp_cert.crt:/etc/nginx/ap_cert.crt
-      - ./cp/cp_cert.key:/etc/nginx/ap_cert.key
-      - ./cp/cp_cert.crt:/etc/nginx/service_cert.crt
-      - ./cp/cp_cert.key:/etc/nginx/service_cert.key
     ports:
-      - "80:80"
-      - "8080:8080"
-      - "${ap_port}:${ap_port}"
-      - "${cp_port}:${cp_port}"
-      - "${service_port}:${service_port}"
+      - "${service_port}:5000"
 
-#  redis:
-#    image: redis:latest
-#    container_name: redis
-#    command: redis-server
+  user:
+    build:
+      context: .
+      dockerfile: user/Dockerfile
+    container_name: user
+    restart: always
+    environment:
+      - APP_NAME=User
+    ports:
+      - "5000:5000"
+
+#  nginx:
+#    build: ./nginx
+#    container_name: nginx
 #    restart: always
-#    expose:
-#      - "6379"
 #    volumes:
-#      - .:/redis/data
-
+#      - ./cp/cp_cert.crt:/etc/nginx/cp_cert.crt
+#      - ./cp/cp_cert.key:/etc/nginx/cp_cert.key
+#      - ./cp/cp_cert.crt:/etc/nginx/ap_cert.crt
+#      - ./cp/cp_cert.key:/etc/nginx/ap_cert.key
+#      - ./cp/cp_cert.crt:/etc/nginx/service_cert.crt
+#      - ./cp/cp_cert.key:/etc/nginx/service_cert.key
+#    ports:
+#      - "80:80"
+#      - "8080:8080"
+#      - "${ap_port}:${ap_port}"
+#      - "${cp_port}:${cp_port}"
+#      - "${service_port}:${service_port}"
 
 

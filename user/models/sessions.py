@@ -4,7 +4,7 @@ from user import db
 
 
 class SessionModel(db.Model):
-    id = db.Column(db.Integer, primary_key=True) # primary keys are required by SQLAlchemy
+    id = db.Column(db.Integer, primary_key=True)
     access_token = db.Column(db.String(), unique=True)
     refresh_token = db.Column(db.String(), unique=True)
 
