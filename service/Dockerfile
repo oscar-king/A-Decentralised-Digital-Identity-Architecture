@@ -6,6 +6,7 @@ WORKDIR /service
 
 # Copy the current directory contents into the container at /app
 ADD service /service
+ADD .env /service
 
 #RUN pip uninstall -y uwsgi && apk add pcre pcre-dev libressl-dev libffi-dev && pip install uwsgi -I --no-cache-dir \
 #    && pip install wheel && python setup.py bdist_wheel && pip install dist/ap-0.0.1-py3-none-any.whl \

@@ -2,7 +2,7 @@ import os
 
 import requests
 from flask import json, jsonify, request
-from service import host
+from service import ap_host
 from crypto_utils.conversions import SigConversion
 from service import create_app, db
 from service.handlers import request_handler, verify_sig
@@ -43,7 +43,7 @@ def user_response():
         return jsonify({'message': 'Could not find y'}), 500
 
     # TODO: Ideally the keys should have been distributed by some other means
-    res = requests.get('http://%s:5001/pubkey' % host, params=params)
+    res = requests.get('http://%s:5000/pubkey' % ap_host, params=params)
     if res.status_code == 200:
         key = res.json()
         key = SigConversion.convert_dict_modint(key)
@@ -76,5 +76,4 @@ def show_all():
 
 
 if __name__ == '__main__':
-    db.create_all(app=app)
     app.run()

@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, json, 
 import os
 from time import localtime
 import dotenv
-from user import dev_host
+from user import cp_host, service_host, ap_host
 from crypto_utils.conversions import SigConversion
 from user.models.keys import KeyModel
 from user.models.sessions import SessionModel
@@ -64,7 +64,7 @@ def challenge_response_post(headers):
         'policy': int(request.form.get('policy'))
     }
 
-    res = requests.get("http://%s:5002/setup_keys" % dev_host, params=params, headers=headers)
+    res = requests.get("http://%s:5000/setup_keys" % cp_host, params=params, headers=headers)
     if res.status_code == 401:
         return redirect(url_for('auth.login'))
     try:
@@ -73,7 +73,7 @@ def challenge_response_post(headers):
 
         # Post keys to CP
         try:
-            res = requests.post("http://%s:5002/generate_proofs" % dev_host, json=json.dumps(es), headers=headers)
+            res = requests.post("http://%s:5000/generate_proofs" % cp_host, json=json.dumps(es), headers=headers)
             if res.status_code == 201:
                 # TODO remove hardcoded CP
                 data = res.json()
@@ -98,7 +98,7 @@ def access_service():
 @main.route("/access_service", methods=['POST'])
 def access_service_post():
     # Get nonce from service
-    res = requests.get('http://%s:5003/request' % dev_host).json()
+    res = requests.get('http://%s:5000/request' % service_host).json()
     service_y = res.get('y')
 
     # Request-certs CP_i
@@ -108,7 +108,7 @@ def access_service_post():
         'policy': int(request.form.get('policy'))
     }
 
-    res = requests.get('http://%s:5001/request_certs' % dev_host, params=params)
+    res = requests.get('http://%s:5001/request_certs' % ap_host, params=params)
     if res.status_code == 500:
         flash(res.json().get('message'), "access_service_error")
         return render_template('service_authenticate.html')
@@ -129,7 +129,7 @@ def access_service_post():
         'pubk': Conversion.OS2IP(key_model.public_key)
     }
 
-    res = requests.get('http://%s:5001/prove_owner' % dev_host, params=pubk)
+    res = requests.get('http://%s:5000/prove_owner' % ap_host, params=pubk)
     y = res.json().get('y')
 
     # Prove the user owns the private key corresponding to a set of proofs in the block
@@ -142,7 +142,7 @@ def access_service_post():
             'signature': proof_owner[1],
             'blind_signature': json.dumps(SigConversion.convert_dict_strlist(blind_signature))
         })
-        res = requests.post('http://%s:5001/prove_owner' % dev_host, json=proof_resp, params=params)
+        res = requests.post('http://%s:5000/prove_owner' % ap_host, json=proof_resp, params=params)
 
         access_info = res.json()
         headers = {
@@ -150,7 +150,7 @@ def access_service_post():
         }
 
         # Request challenge
-        challenge = requests.get('http://%s:5001/init_sig' % dev_host, headers=headers).json()
+        challenge = requests.get('http://%s:5000/init_sig' % ap_host, headers=headers).json()
 
         # Handle challenge
         try:
@@ -158,7 +158,7 @@ def access_service_post():
             e = json.dumps(handle_challenge_ap(challenge, params.get('policy'), service_y))
 
             # Send Response
-            proof_response = requests.post('http://%s:5001/generate_proof' % dev_host, json=e, headers=headers)
+            proof_response = requests.post('http://%s:5000/generate_proof' % ap_host, json=e, headers=headers)
             proofs = proof_response.json()
 
             # Validate Response
@@ -183,7 +183,7 @@ def access_service_post():
             }
 
             # Get access to service
-            res = requests.post('http://%s:5003/response' % dev_host, json=json.dumps(resp_service))
+            res = requests.post('http://%s:5000/response' % service_host, json=json.dumps(resp_service))
             if res.status_code == 200:
                 return render_template('thanks.html')
             else:

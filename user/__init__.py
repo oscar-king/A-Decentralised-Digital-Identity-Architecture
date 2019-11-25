@@ -5,7 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
-dev_host="0.0.0.0"
+cp_host = "cp"
+ap_host = "ap"
+service_host = "service"
+
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
@@ -24,4 +27,5 @@ def create_app():
     from user.main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
+    db.create_all(app=app)
     return app

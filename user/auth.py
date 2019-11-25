@@ -1,7 +1,7 @@
 # auth.py
 import requests
 from flask import Blueprint, render_template, redirect, url_for, request, flash
-from user import dev_host
+from user import cp_host
 from user.models.sessions import SessionModel
 
 auth = Blueprint('auth', __name__, template_folder='templates')
@@ -19,7 +19,7 @@ def login_post():
         'remember': request.form.get('remember')
     }
 
-    res = requests.post("http://%s:5002/login" % dev_host, json=data)
+    res = requests.post("http://%s:5000/login" % cp_host, json=data)
     data = res.json()
     if res.status_code == 200:
         SessionModel.delete()
@@ -44,7 +44,7 @@ def signup_post():
         'password': request.form.get('password')
     }
 
-    res = requests.post("http://%s:5002/signup" % dev_host, json=data)
+    res = requests.post("http://%s:5000/signup" % cp_host, json=data)
 
     data = res.json()
     if res.status_code == 201:
