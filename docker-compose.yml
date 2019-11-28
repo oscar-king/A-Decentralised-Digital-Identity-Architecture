@@ -1,6 +1,13 @@
 version: "3.7"
 
 services:
+  ledger:
+    image: hyperledger/composer-playground
+    container_name: ledger
+    restart: always
+    ports:
+      - "8080:8080"
+
   cp:
     build:
       context: .

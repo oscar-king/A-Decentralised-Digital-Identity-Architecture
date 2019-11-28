@@ -1,41 +1,3 @@
-FROM hyperledger/composer-playground:latest
-#USER root
-#RUN apk --no-cache add --virtual nodejs npm native-deps g++ gcc libgcc libstdc++ linux-headers \
-#    && apk --no-cache add --virtual reqs python git \
-#    && apk --no-cache add --virtual dockerreqs make py-pip python-dev libffi-dev openssl-dev libc-dev \
-#    && npm install -g composer-cli composer-rest-server && apk del native-deps
-
-## Set the working directory to ledger
-#WORKDIR ledger
-#
-## Copy the current directory contents into the container at /app
-#ADD ledger/digid ./digid/
-#ADD ledger/fabric-dev-servers/ ./fabric-dev-servers/
-#ADD ledger/init_container.sh .
-#ADD test_ledger_connection.sh .
-#ADD .env /ledger
-#
-#CMD ["sh", "init_container.sh"]
-
-
-# Install python and composer-cli tools in docker image, then try running the init script. If that works we are in the clear
-
-
-
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 # Fixed to last known good level at deprecation; later versions fail build due to Alpine upgrade
 FROM node:8.15.1-alpine
 
@@ -73,4 +35,4 @@ ADD test_ledger_connection.sh .
 ADD .env /ledger
 
 
-CMD ["/bin/bash", "init_container.sh"]
+CMD ["sh", "init_container.sh"]
