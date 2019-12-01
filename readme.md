@@ -67,8 +67,8 @@ To load the prebuilt image:
 1. Ensure you are in the project's root directory.
 2. Run the following `docker load --input code_base.tar.gz`
 
-### Sockets
-The default configuration for the project is to have docker compose deploy all the containers locally on `localhost`. Additionally the endpoints for the specific entities are as follows:
+## Sockets
+The default configuration for the project is to have docker compose deploy all the containers locally on `localhost/0.0.0.0`. Additionally the endpoints for the specific entities are as follows:
 
 |           Entity        | Directory Name  |      Port     |
 | ------------------------|:---------------:|:-------------:|
@@ -78,6 +78,7 @@ The default configuration for the project is to have docker compose deploy all t
 |          Service        |        ap       |     5003      |
 |          Ledger         |      ledger     |     8080      |
 
+## Building and Running
 Then to run the project issue the following commands:
 ```bash
 docker-compose build
@@ -85,6 +86,7 @@ docker-compose up
 ```
 
 After issuing these commands all components should be up and running. To initialise the system with participants please run the following script located in the root directory `init.sh`.
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
