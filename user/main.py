@@ -18,6 +18,11 @@ main = Blueprint('main', __name__, template_folder='templates')
 dotenv.load_dotenv('../.env')
 
 def token_required(func):
+    """
+    Helper wrapper that injects the access token that is needed for authentication into the protected methods.
+    :param func: JWT protected function.
+    :return:
+    """
     @functools.wraps(func)
     def decorator_token_required(*args, **kwargs):
         # Get access_token
@@ -34,6 +39,10 @@ def token_required(func):
 
 @main.route('/')
 def index():
+    """
+    Renders the user main page.
+    :return:
+    """
     # Use os.getenv("key") to get environment variables
     app_name = os.getenv("APP_NAME")
     if not app_name:
@@ -46,6 +55,11 @@ def index():
 @main.route('/generate_keys')
 @token_required
 def gen_keys(headers):
+    """
+    Renders the generate_keys.html page.
+    :param headers:
+    :return:
+    """
     access_token = SessionModel.query.first()
     if access_token is None:
         return redirect(url_for('auth.login'))
@@ -56,6 +70,12 @@ def gen_keys(headers):
 @main.route("/generate_keys", methods=['POST'])
 @token_required
 def challenge_response_post(headers):
+    """
+    This method is called by the user frontend when the generate keys form has been filled out. It then initiates the
+    blinding process with the CP. It receives the the proof hashes from the CP and saves them in the database.
+
+    This is the first step the user must take to create credentials.
+    """
 
     # Get the number of requested keys from the form, then generate the required number
     params = {
@@ -64,6 +84,11 @@ def challenge_response_post(headers):
         'policy': int(request.form.get('policy'))
     }
 
+    """
+    The user must initiate the interaction with the CP in order to blind the signatures. It sends a GET request
+    to the following endpoint in order to receive (rnd, a, b1, b2) and the CP public key for the corresponding policy 
+    and time interval. 
+    """
     res = requests.get("http://%s:5000/setup_keys" % cp_host, params=params, headers=headers)
     if res.status_code == 401:
         return redirect(url_for('auth.login'))
@@ -92,6 +117,10 @@ def challenge_response_post(headers):
 
 @main.route("/access_service", methods=['GET'])
 def access_service():
+    """
+    Renders the service_authenticate.html page.
+    :return:
+    """
     return render_template('service_authenticate.html')
 
 
