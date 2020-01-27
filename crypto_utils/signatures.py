@@ -110,6 +110,9 @@ class BlindSigner:
 
 
 class UserBlindSignature(BlindSigner):
+    """
+    This class represents the entity who wishes to have a certain message blindly signed.
+    """
     def __init__(self, input_=None):
         if input_ is not None:
             self.p = input_.get('p')
@@ -211,6 +214,9 @@ class UserBlindSignature(BlindSigner):
 
 
 class SignerBlindSignature(BlindSigner):
+    """
+    This class represents the entity which blindly signs a given value.
+    """
     def __init__(self, group=None, p=0, q=0, secparam=256):
         self.group = group if group is not None else IntegerGroupQ()
         self.group.p, self.group.q, self.group.r = p, q, 2

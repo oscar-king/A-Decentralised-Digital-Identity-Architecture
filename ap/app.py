@@ -44,6 +44,11 @@ def gen_policies_post():
 # TODO implement get_certs
 @app.route("/request_certs", methods=['GET'])
 def request_certs():
+    """
+    Takes the CP ID, timestamp, and policy number and retrieves the block on the blockchain with that transaction.
+    The proofs are then returned.
+    :return:
+    """
     cp = request.args.get('cp')
     timestamp = int(request.args.get('timestamp'))
     policy = int(request.args.get('policy'))
@@ -61,7 +66,7 @@ def request_certs():
 @app.route("/prove_owner", methods=['GET', 'POST'])
 def prove_owner():
 
-    # Challenge
+    # Create challenge
     if request.method == 'GET':
         pubk = request.args.get('pubk')
         if pubk is None:
@@ -105,6 +110,7 @@ def prove_owner():
                     userNonce.timestamp = timestamp
                     userNonce.policy = policy
 
+                    # Check blind signature
                     blind_signature = data.get('blind_signature')
                     if userNonce.verify_blind(cp, blind_signature):
                         access_token = create_access_token(identity=userNonce.y, expires_delta=timedelta(minutes=30))
@@ -125,6 +131,10 @@ def prove_owner():
 
 @app.route('/pubkey')
 def get_key():
+    """
+    Allows services to retrieve the public key associated with a specific timestamp and policy.
+    :return:
+    """
     timestamp = int(request.args.get('timestamp'))
     policy = int(request.args.get('policy'))
 
