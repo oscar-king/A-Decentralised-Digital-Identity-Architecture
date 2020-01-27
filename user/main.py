@@ -17,7 +17,13 @@ main = Blueprint('main', __name__, template_folder='templates')
 
 dotenv.load_dotenv('../.env')
 
+
 def token_required(func):
+    """
+    Helper wrapper that injects the access token that is needed for authentication into the protected methods.
+    :param func: JWT protected function.
+    :return:
+    """
     @functools.wraps(func)
     def decorator_token_required(*args, **kwargs):
         # Get access_token
@@ -34,6 +40,10 @@ def token_required(func):
 
 @main.route('/')
 def index():
+    """
+    Renders the user main page.
+    :return:
+    """
     # Use os.getenv("key") to get environment variables
     app_name = os.getenv("APP_NAME")
     if not app_name:
@@ -46,6 +56,11 @@ def index():
 @main.route('/generate_keys')
 @token_required
 def gen_keys(headers):
+    """
+    Renders the generate_keys.html page.
+    :param headers:
+    :return:
+    """
     access_token = SessionModel.query.first()
     if access_token is None:
         return redirect(url_for('auth.login'))
@@ -56,6 +71,12 @@ def gen_keys(headers):
 @main.route("/generate_keys", methods=['POST'])
 @token_required
 def challenge_response_post(headers):
+    """
+    This method is called by the user frontend when the generate keys form has been filled out. It then initiates the
+    blinding process with the CP. It receives the the proof hashes from the CP and saves them in the database.
+
+    This is the first step the user must take to create credentials.
+    """
 
     # Get the number of requested keys from the form, then generate the required number
     params = {
@@ -64,11 +85,16 @@ def challenge_response_post(headers):
         'policy': int(request.form.get('policy'))
     }
 
+    """
+    The user must initiate the interaction with the CP in order to blind the signatures. It sends a GET request
+    to the following endpoint in order to receive (rnd, a, b1, b2) and the CP public key for the corresponding policy 
+    and time interval. 
+    """
     res = requests.get("http://%s:5000/setup_keys" % cp_host, params=params, headers=headers)
     if res.status_code == 401:
         return redirect(url_for('auth.login'))
     try:
-        # Blind the keys
+        # Generates the challenge response
         es = handle_challenge(res.json(), params.get('policy'))
 
         # Post keys to CP
@@ -77,6 +103,8 @@ def challenge_response_post(headers):
             if res.status_code == 201:
                 # TODO remove hardcoded CP
                 data = res.json()
+
+                # The response hashes need to be saved with the corresponding policy at a given timestamp
                 handle_response_hashes(data, int(os.environ.get('cp_dlt_id')), data.get('policy'))
                 flash("Keys have been generated", 'keygen_success')
                 return render_template('generate_keys.html')
@@ -92,6 +120,10 @@ def challenge_response_post(headers):
 
 @main.route("/access_service", methods=['GET'])
 def access_service():
+    """
+    Renders the service_authenticate.html page.
+    :return:
+    """
     return render_template('service_authenticate.html')
 
 
@@ -101,19 +133,20 @@ def access_service_post():
     res = requests.get('http://%s:5000/request' % service_host).json()
     service_y = res.get('y')
 
-    # Request-certs CP_i
+    # Setup parameters that are sent to the AP
     params = {
         'cp': int(request.form.get('cp')),
         'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
         'policy': int(request.form.get('policy'))
     }
 
+    # Request-certs CP_i
     res = requests.get('http://%s:5001/request_certs' % ap_host, params=params)
     if res.status_code == 500:
         flash(res.json().get('message'), "access_service_error")
         return render_template('service_authenticate.html')
 
-    # Get data
+    # Get data from response and find corresponding keymodel
     data = res.json()
     key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
                                          interval_timestamp_=params.get('timestamp')).first()
@@ -129,10 +162,12 @@ def access_service_post():
         'pubk': Conversion.OS2IP(key_model.public_key)
     }
 
+    # Get the challenge from the AP in order to prove that the user owns a specific keypair
     res = requests.get('http://%s:5000/prove_owner' % ap_host, params=pubk)
     y = res.json().get('y')
 
     # Prove the user owns the private key corresponding to a set of proofs in the block
+    # Proof consists of the signature of the private key on the nonce y and the blind signature on the public key
     try:
         (proof, proof_owner) = prove_owner(y, data, key_model.proof_hash)
         blind_signature = key_model.generate_blind_signature(proof.get('proofs'))
@@ -142,14 +177,17 @@ def access_service_post():
             'signature': proof_owner[1],
             'blind_signature': json.dumps(SigConversion.convert_dict_strlist(blind_signature))
         })
+
+        # Post the proofs
         res = requests.post('http://%s:5000/prove_owner' % ap_host, json=proof_resp, params=params)
 
+        # Receive access token for AP
         access_info = res.json()
         headers = {
             'Authorization': "Bearer " + access_info.get('access')
         }
 
-        # Request challenge
+        # Request challenge from AP to issue blind signature
         challenge = requests.get('http://%s:5000/init_sig' % ap_host, headers=headers).json()
 
         # Handle challenge
