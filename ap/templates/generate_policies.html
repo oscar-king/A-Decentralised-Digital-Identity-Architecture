@@ -1,0 +1,40 @@
+<!-- templates/generate_policies.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Create New Policy</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages(category_filter=["gen_policies_success"]) %}
+            {% if messages %}
+                <div class="notification is-success">
+                    {{ messages[0] }}.
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% with messages = get_flashed_messages(category_filter=["gen_policies_fail"]) %}
+            {% if messages %}
+                <div class="notification is-danger">
+                    {{ messages[0] }}.
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="/gen_policies">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="number" name="max_age" placeholder="Lifetime (mins)" autofocus="">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="description" placeholder="Description">
+                </div>
+            </div>
+
+            <button class="button is-block is-info is-large is-fullwidth">Create</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

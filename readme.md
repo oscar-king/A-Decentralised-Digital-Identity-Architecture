@@ -12,24 +12,31 @@ A brief overview of the file structure of this project.
         ├── tests
             ├── tests_app_pytest.py  
         ├── .dockerfile
-        ├── app.ini
         ├── app.py
         ├── Dockerfile            
     ├── cp
         ├── tests
             ├── tests_app_pytest.py  
         ├── .dockerfile
-        ├── app.ini
         ├── app.py
-        ├── Dockerfile            
-    ├── nginx
         ├── Dockerfile
-        ├── nginx.conf         
+    ├── user
+        ├── tests
+            ├── tests_app_pytest.py  
+        ├── .dockerfile
+        ├── app.py
+        ├── Dockerfile
+    ├── service
+        ├── tests
+            ├── tests_app_pytest.py  
+        ├── .dockerfile
+        ├── app.py
+        ├── Dockerfile
     ├── .env                
     ├── .gitignore    
-    ├── requirements.txt      
+    ├── requirements.txt
+    ├── Dockerfile
     ├── docker-compose.yml
-    ├── settings.py
     └── README.md
 ```
 
@@ -40,42 +47,46 @@ Use [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to clon
 ```bash
 git clone https://github.com/oscar-king/A-Decentralised-Digital-Identity-Architecture.git
 ```
+Currently the most up to date branch is the `crypto` branch, please clone this one.
 
 ## Setup
-The project makes use of Docker and Docker Compose so if you do not already have them you can install them here:
+The project makes use of Docker, Docker Compose, and Hyperledger Composer, so if you do not already have them you can install them here:
 1. [Install Docker](https://docs.docker.com/v17.09/engine/installation/)
 2. [Install Docker Compose](https://docs.docker.com/v17.09/compose/install/#install-compose)
+3. [Install Hyperledger Composer CLI](https://hyperledger.github.io/composer/v0.19/installing/development-tools.html)
 
-Additionally this project makes use of self-signed certificates so something like [OpenSSL](https://www.openssl.org/) is useful. The examples assume the use of OpenSSL.
+## Building Dependencies
+The project makes use of a base image with all dependencies installed on it. This is done to save time in subsequent builds. This base image can be built manually, or the prebuilt image supplied can be loaded such that docker can use it.
 
-Before deploying it is important to generate certificates for each entity (i.e Certification Provider, Authentication Provider, etc). It is important to store the certificate and key in the directory of the entity you are creating the certificate for because the `settings.py` file assumes this.
+Building the image manually:
+1. Ensure you are in the project's root directory.
+2. Run the following `docker build -t code_latest:latest .`
+This builds the image from the dockerfile located in the project root. 
 
-Assuming you are in the project's root directory:
-```bash
-cd ap
-openssl req -newkey rsa:2048 -nodes -keyout ap_cert.key -x509 -days 365 -out ap_cert.crt
-``` 
-The above should be done for all entities. It is also vital that the following naming conventions are respected: `<current_directory>_cert.key` and `<current_directory>_cert.crt` e.g. If you are in the `ap` directory then the certificate and key will have the following names: `ap_cert.crt` and `ap_cert.key`. There are no restrictions as to the type of certificate, the algorithm or how it what tool you use to create it, the example happens to use OpenSSL. 
+To load the prebuilt image:
+1. Ensure you are in the project's root directory.
+2. Run the following `docker load --input code_base.tar.gz`
 
-### Sockets
-The default configuration for the project is to have docker compose deploy all the containers locally on `localhost`. Additionally the endpoints for the specific entities are as follows:
+## Sockets
+The default configuration for the project is to have docker compose deploy all the containers locally on `localhost/0.0.0.0`. Additionally the endpoints for the specific entities are as follows:
 
 |           Entity        | Directory Name  |      Port     |
 | ------------------------|:---------------:|:-------------:|
-| Authentication Provider |        ap       |     5000      |
-| Cerfication Provider    |        cp       |     5001      |
-|         Service         |        ap       |     5002      |
+|           User          |        ap       |     5000      |
+| Authentication Provider |        ap       |     5001      |
+| Cerfication Provider    |        cp       |     5002      |
+|          Service        |        ap       |     5003      |
+|          Ledger         |      ledger     |     8080      |
 
-
-The ports can be changed by merely altering them in the `.env` file. However after changing the ports the `settings.py` script must be run to ensure all the configuration files are updated.
-```bash
-python3 settings.py
-```
+## Building and Running
 Then to run the project issue the following commands:
 ```bash
 docker-compose build
 docker-compose up
 ```
+
+After issuing these commands all components should be up and running. To initialise the system with participants please run the following script located in the root directory `init.sh`.
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 

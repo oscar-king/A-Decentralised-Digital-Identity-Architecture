@@ -14,7 +14,7 @@ config = configparser.ConfigParser()
 nginx_config = nginx.Conf()
 for subdir in subdirs:
     # Load the respective config file and get the respective env variables
-    file = subdir + "/app.ini"
+    file = subdir + "/" + subdir +".ini"
     host = os.environ.get(subdir + "_host")
     port = os.environ.get(subdir + "_port")
 
@@ -45,14 +45,14 @@ for subdir in subdirs:
     nginx_config.add(server)
 
 # Hardcoded redirect for base localhost
-server = nginx.Server()
-server.add(
-    nginx.Key('listen', "80"),
-    nginx.Key('listen', "8080"),
-    nginx.Key('server_name', "localhost"),
-    nginx.Key('return', "307 https://github.com/oscar-king/A-Decentralised-Digital-Identity-Architecture$request_uri")
-)
-nginx_config.add(server)
+# server = nginx.Server()
+# server.add(
+#     nginx.Key('listen', "80"),
+#     nginx.Key('listen', "8080"),
+#     nginx.Key('server_name', "localhost"),
+#     nginx.Key('return', "307 https://github.com/oscar-king/A-Decentralised-Digital-Identity-Architecture$request_uri")
+# )
+# nginx_config.add(server)
 
 # Write the nginx.conf file
 nginx.dumpf(nginx_config, 'nginx/nginx.conf')
