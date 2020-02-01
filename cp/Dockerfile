@@ -1,5 +1,5 @@
 # code_base has all the dependencies installed
-FROM code_base:latest
+FROM code_latest
 
 # Set the working directory to /app
 WORKDIR /cp

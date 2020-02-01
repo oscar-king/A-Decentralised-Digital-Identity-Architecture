@@ -1,12 +1,26 @@
 version: "3.7"
 
 services:
-  ledger:
+  composer:
     image: hyperledger/composer-playground
-    container_name: ledger
+    container_name: composer
     restart: always
+    volumes:
+      - ~/.composer:/home/composer/.composer
     ports:
       - "8080:8080"
+
+  rest_api:
+      image: hyperledger/composer-rest-server
+      container_name: rest_api
+      restart: always
+      environment:
+        - COMPOSER_CARD=CP@digid
+        - COMPOSER_NAMESPACES=never
+      volumes:
+        - ~/.composer:/home/composer/.composer
+      ports:
+        - "3000:3000"
 
   cp:
     build:
@@ -76,4 +90,7 @@ services:
 #      - "${cp_port}:${cp_port}"
 #      - "${service_port}:${service_port}"
 
-
+networks:
+  default:
+    external:
+      name: composer_default

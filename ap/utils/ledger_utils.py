@@ -19,7 +19,7 @@ def get_block(cp: int, timestamp: int, policy: int):
         'timestampParam': timestamp,
         'policyParam': policy
     }
-    res = requests.get('http://localhost:3001/api/queries/ProofBlockQuery', params=params)
+    res = requests.get('http://rest_api:3000/api/queries/ProofBlockQuery', params=params)
     data = res.json()[0] if len(res.json()) != 0 else None
     return data
 
