@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-cd $DIR
+cd "$DIR"
 
 # Stop flask containers
 docker-compose -f "docker-compose.yml" down
 
-cd $DIR/ledger
+cd "$DIR/ledger"
 export FABRIC_VERSION=hlfv12
 
 # Stop Hyperledger
