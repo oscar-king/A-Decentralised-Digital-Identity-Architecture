@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 NETWORK_VERSION=0.2.1
 
 function add_participant() {
@@ -11,19 +12,22 @@ function issue_identity() {
 }
 
 function new_provider() {
-    add_participant $1 $2 $3 >> output.log
-    issue_identity $1 $2 $3 $4 >> output.log
+    add_participant $1 $2 $3
+    issue_identity $1 $2 $3 $4
 }
 
-cd ./ledger
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+cd $DIR/ledger
 export FABRIC_VERSION=hlfv12
 export FABRIC_START_TIMEOUT=30
 
-# Start fabric
+# Start Hyperledger
 ./fabric-dev-servers/downloadFabric.sh
 ./fabric-dev-servers/startFabric.sh
 ./fabric-dev-servers/createPeerAdminCard.sh
 
+# Install network
 composer network install --card PeerAdmin@hlfv1 --archiveFile digid@$NETWORK_VERSION.bna
 composer network start --networkName digid --networkVersion $NETWORK_VERSION --networkAdmin admin --networkAdminEnrollSecret adminpw --card PeerAdmin@hlfv1 --file networkadmin.card
 composer card import --file networkadmin.card
@@ -37,9 +41,9 @@ sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer
 sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer0.org1.example.com:7053/' -e 's/localhost:7054/ca.org1.example.com:7054/'  -e 's/localhost:7050/orderer.example.com:7050/'  < $HOME/.composer/cards/CP@digid/connection.json  > /tmp/connection.json && cp -p /tmp/connection.json $HOME/.composer/cards/CP@digid/
 sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer0.org1.example.com:7053/' -e 's/localhost:7054/ca.org1.example.com:7054/'  -e 's/localhost:7050/orderer.example.com:7050/'  < $HOME/.composer/cards/AP@digid/connection.json  > /tmp/connection.json && cp -p /tmp/connection.json $HOME/.composer/cards/AP@digid/
 
-cd ..
+cd $DIR
 
-docker-compose -f "docker-compose.yml" down
+# Start flask containers
 docker-compose -f "docker-compose.yml" up -d
 
 echo "All containers started"

@@ -10,17 +10,29 @@ services:
     ports:
       - "8080:8080"
 
-  rest_api:
-      image: hyperledger/composer-rest-server
-      container_name: rest_api
-      restart: always
-      environment:
-        - COMPOSER_CARD=CP@digid
-        - COMPOSER_NAMESPACES=never
-      volumes:
-        - ~/.composer:/home/composer/.composer
-      ports:
-        - "3000:3000"
+  cp_rest_api:
+    image: hyperledger/composer-rest-server
+    container_name: cp_rest_api
+    restart: always
+    environment:
+      - COMPOSER_CARD=CP@digid
+      - COMPOSER_NAMESPACES=never
+    volumes:
+      - ~/.composer:/home/composer/.composer
+    ports:
+      - "3001:3000"
+
+  ap_rest_api:
+    image: hyperledger/composer-rest-server
+    container_name: ap_rest_api
+    restart: always
+    environment:
+      - COMPOSER_CARD=AP@digid
+      - COMPOSER_NAMESPACES=never
+    volumes:
+      - ~/.composer:/home/composer/.composer
+    ports:
+      - "3002:3000"
 
   cp:
     build:
