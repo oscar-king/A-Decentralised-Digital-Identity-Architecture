@@ -20,7 +20,7 @@ services:
     volumes:
       - ~/.composer:/home/composer/.composer
     ports:
-      - "3001:3000"
+      - "${cp_dlt_port}:3000"
 
   ap_rest_api:
     image: hyperledger/composer-rest-server
@@ -32,55 +32,45 @@ services:
     volumes:
       - ~/.composer:/home/composer/.composer
     ports:
-      - "3002:3000"
+      - "${ap_dlt_port}:3000"
 
   cp:
-    build:
-      context: .
-      dockerfile: cp/Dockerfile
+    build: ./cp
     container_name: cp
     restart: always
     environment:
       - APP_NAME=CertificationProvider
-    expose:
-      - ${cp_port}
+      - FLASK_ENV=${FLASK_ENV}
     ports:
       - "${cp_port}:5000"
 
   ap:
-    build:
-      context: .
-      dockerfile: ap/Dockerfile
+    build: ./ap
     container_name: ap
     restart: always
     environment:
       - APP_NAME=AuthenticationProvider
-    expose:
-      - ${ap_port}
+      - FLASK_ENV=${FLASK_ENV}
     ports:
       - "${ap_port}:5000"
 
   service:
-    build:
-      context: .
-      dockerfile: service/Dockerfile
+    build: ./service
     container_name: service
     restart: always
     environment:
       - APP_NAME=Service
-    expose:
-      - ${service_port}
+      - FLASK_ENV=${FLASK_ENV}
     ports:
       - "${service_port}:5000"
 
   user:
-    build:
-      context: .
-      dockerfile: user/Dockerfile
+    build: ./user
     container_name: user
     restart: always
     environment:
       - APP_NAME=User
+      - FLASK_ENV=${FLASK_ENV}
     ports:
       - "5000:5000"
 
