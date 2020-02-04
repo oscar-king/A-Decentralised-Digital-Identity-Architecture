@@ -44,6 +44,6 @@ sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer
 cd "$DIR"
 
 # Start flask containers
-docker-compose -f "docker-compose.yml" up -d
+docker-compose -f "docker-compose.yml" up -d --build
 
 echo "All containers started"

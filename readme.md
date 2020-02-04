@@ -47,7 +47,7 @@ git clone https://github.com/HarryThomas17/A-Decentralised-Digital-Identity-Arch
 The project makes use of Docker, Docker Compose, and Hyperledger Composer, so if you do not already have them you can install them here:
 1. [Install Docker](https://docs.docker.com/v17.09/engine/installation/)
 2. [Install Docker Compose](https://docs.docker.com/v17.09/compose/install/#install-compose)
-3. [Install Hyperledger Composer CLI](https://hyperledger.github.io/composer/v0.19/installing/development-tools.html)
+3. [Install Hyperledger Composer CLI](https://hyperledger.github.io/composer/v0.19/installing/development-tools.html) (remove @19 from npm commands)
 
 ## Building Dependencies
 The project makes use of a base image with all dependencies installed on it. This is done to save time in subsequent builds. This base image can be built manually:
@@ -56,7 +56,7 @@ The project makes use of a base image with all dependencies installed on it. Thi
 This builds the image from the dockerfile located in the project root. 
 
 ## Running
-2 shell scripts are included to start and stop the project. To start the project, run `./start.sh`. To stop the project, run `./stop.sh`.
+2 shell scripts are included to start and stop the project (bring up Hyperledger Fabric and Flask containers). To start the project, run `./start.sh`. To stop the project, run `./stop.sh`. After `start.sh` completes successfully, you can bring up and down the Flask containers only with `docker-compose down` and `docker-compose up --build -d`.
 
 ## Sockets
 The default configuration for the project is to have docker compose deploy all the containers locally on `localhost/0.0.0.0`. Additionally the endpoints for the specific entities are as follows:

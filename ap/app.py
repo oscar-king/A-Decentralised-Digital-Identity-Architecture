@@ -124,10 +124,11 @@ def prove_owner():
                         userNonce.save_to_db()
                         return resp, 200
                 else:
-                    return jsonify({'message':'Invalid Signature'}), 400
+                    return jsonify({'message': 'Invalid Signature'}), 400
 
             else:
-                return jsonify({'message':'No such nonce'}), 500
+                return jsonify({'message': 'No such nonce'}), 500
+
 
 @app.route('/pubkey')
 def get_key():
