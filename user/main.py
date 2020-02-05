@@ -140,7 +140,7 @@ def access_service_post():
     }
 
     # Request-certs CP_i
-    res = requests.get('http://%s:5001/request_certs' % ap_host, params=params)
+    res = requests.get('http://%s:5000/request_certs' % ap_host, params=params)
     if res.status_code == 500:
         flash(res.json().get('message'), "access_service_error")
         return render_template('service_authenticate.html')
@@ -206,7 +206,7 @@ def access_service_post():
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=int(os.environ.get('ap_dlt_id')), provider_type_=2).first()
+            ap_key_model = KeyModel.query.filter_by(p_id_=2000, provider_type_=2).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))

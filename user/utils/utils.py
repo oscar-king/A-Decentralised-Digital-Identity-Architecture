@@ -1,12 +1,10 @@
 import json
 from typing import Tuple
-
 from charm.toolbox.conversion import Conversion
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
 from user.models.keys import KeyModel
 from Crypto.Hash.SHA256 import SHA256Hash
-import os
 import dotenv
 
 dotenv.load_dotenv('.env')
@@ -145,4 +143,4 @@ def handle_challenge_ap(challenge: dict, policy: int, service_y):
     :param service_y: The nonce sent by the service that a user has requested access to.
     :return: Challenge response 'e' which needs to be sent back to the AP.
     """
-    return handle_challenge_util('AP', int(os.environ.get('ap_dlt_id')), challenge, policy, int(service_y, 16))
+    return handle_challenge_util('AP', 2000, challenge, policy, int(service_y, 16))

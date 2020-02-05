@@ -123,6 +123,8 @@ def prove_owner():
 
                         userNonce.save_to_db()
                         return resp, 200
+                    else:
+                        return jsonify({'message': 'Blind signature failed to verify'}), 400
                 else:
                     return jsonify({'message': 'Invalid Signature'}), 400
 

@@ -134,7 +134,8 @@ class UserBlindSignature(BlindSigner):
         return None
 
     def __get__(self, keys, _type=tuple):
-        if not type(keys) == list: return
+        if not type(keys) == list:
+            return
         if _type == tuple:
             ret = []
         else:

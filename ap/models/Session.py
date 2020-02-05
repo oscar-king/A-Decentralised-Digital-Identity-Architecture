@@ -104,8 +104,6 @@ class Session(db.Model):
         message = Conversion.OS2IP(self.pubk)
         return verifier.verify(sig, message)
 
-
-
     @staticmethod
     def find(y: str):
         tmp = Session.query.get(y)
@@ -113,4 +111,3 @@ class Session(db.Model):
             return tmp
         else:
             return None
-
