@@ -2,11 +2,5 @@ language: python
 install:
     - pip install -r requirements.txt
     - pip install -e .
-before_script:
-    - curl -L https://codeclimate.com/downloads/client_test-reporter/client_test-reporter-latest-linux-amd64 > ./cc-client_test-reporter
-    - chmod +x ./cc-client_test-reporter
-    - ./cc-client_test-reporter before-build
 script:
   - pytest
-after_success:
-  - ./cc-client_test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
