@@ -77,7 +77,6 @@ def challenge_response_post(headers):
 
     This is the first step the user must take to create credentials.
     """
-
     # Get the number of requested keys from the form, then generate the required number
     params = {
         'number': int(request.form.get('number')),
@@ -87,8 +86,8 @@ def challenge_response_post(headers):
 
     """
     The user must initiate the interaction with the CP in order to blind the signatures. It sends a GET request
-    to the following endpoint in order to receive (rnd, a, b1, b2) and the CP public key for the corresponding policy 
-    and time interval. 
+    to the following endpoint in order to receive (rnd, a, b1, b2) and the CP public key for the corresponding policy
+    and time interval.
     """
     res = requests.get("http://%s:5000/setup_keys" % cp_host, params=params, headers=headers)
     if res.status_code == 401:
@@ -105,7 +104,7 @@ def challenge_response_post(headers):
                 data = res.json()
 
                 # The response hashes need to be saved with the corresponding policy at a given timestamp
-                handle_response_hashes(data, int(os.environ.get('cp_dlt_id')), data.get('policy'))
+                handle_response_hashes(data, 2000, data.get('policy'))
                 flash("Keys have been generated", 'keygen_success')
                 return render_template('generate_keys.html')
             else:
@@ -141,7 +140,7 @@ def access_service_post():
     }
 
     # Request-certs CP_i
-    res = requests.get('http://%s:5001/request_certs' % ap_host, params=params)
+    res = requests.get('http://%s:5000/request_certs' % ap_host, params=params)
     if res.status_code == 500:
         flash(res.json().get('message'), "access_service_error")
         return render_template('service_authenticate.html')
@@ -207,7 +206,7 @@ def access_service_post():
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=int(os.environ.get('ap_dlt_id')), provider_type_ = 2).first()
+            ap_key_model = KeyModel.query.filter_by(p_id_=2000, provider_type_=2).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
@@ -234,8 +233,6 @@ def access_service_post():
     except Exception as e:
         flash(str(e), "access_service_error")
         return render_template('service_authenticate.html')
-
-
 
 
 @main.route('/thanks')

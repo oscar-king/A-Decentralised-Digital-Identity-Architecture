@@ -35,7 +35,7 @@ def get_users():
     return str(user)
 
 
-#TODO seems not to work
+# TODO seems not to work
 @main.route('/reset_users')
 def reset_users():
     map(lambda x: x.delete(), UserModel.query.all())
@@ -92,6 +92,7 @@ def setup_keys():
 
             return resp, 500
 
+
 @main.route('/publish_policies')
 def publish():
     return render_template('publish.html')
@@ -119,7 +120,7 @@ def generate_proofs():
     es = data.get('es')
     policy = data.get('policy')
 
-    if not data: # If no file is submitted flash message
+    if not data:  # If no file is submitted flash message
         flash('Please submit file', 'post_keys')
         resp = jsonify({
             'message': "Bad Request"

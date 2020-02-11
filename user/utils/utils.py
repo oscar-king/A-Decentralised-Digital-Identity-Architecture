@@ -1,12 +1,10 @@
 import json
 from typing import Tuple
-
 from charm.toolbox.conversion import Conversion
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
 from user.models.keys import KeyModel
 from Crypto.Hash.SHA256 import SHA256Hash
-import os
 import dotenv
 
 dotenv.load_dotenv('.env')
@@ -16,8 +14,8 @@ def handle_challenge_util(signer_type: str, signer_id: int, resp: dict, policy: 
     """
     Utility function that takes care of type conversions and ultimately calls the signing function
     :param signer_type: Whether a blind signature is being requested from a CP or an AP.
-    :param signer_id: The CP\AP's participant ID
-    :param resp: The CP\AP response to the challenge request.
+    :param signer_id: The CP\\AP's participant ID
+    :param resp: The CP\\AP response to the challenge request.
     :param policy: The policy for which the signature needs to be generated.
     :param message: The message that the blind signature needs to be generated on.
     :return: e: The challenge response that is used by the CP/AP's to generate the proofs.
@@ -51,7 +49,7 @@ def handle_challenge(resp: dict or list, policy: int):
     """
     es = list()
     for x in resp:
-        e = handle_challenge_util('CP', int(os.environ.get('cp_dlt_id')), x, policy)
+        e = handle_challenge_util('CP', 2000, x, policy)
         es.append(e)
 
     ret = {
@@ -92,7 +90,7 @@ def prove_owner(y: str, proofs: dict, proof_hash_idx: int) -> Tuple[dict, Tuple[
     """
     for x in json.loads(proofs.get('proofs')):
         if x.get('hash') == proof_hash_idx:
-            key_model = KeyModel.query.filter_by(proof_hash_= str(proof_hash_idx)).first()
+            key_model = KeyModel.query.filter_by(proof_hash_=str(proof_hash_idx)).first()
             return x, key_model.sign(y)
     raise Exception("Couldn't find hash matching input parameters in block.")
 
@@ -145,4 +143,4 @@ def handle_challenge_ap(challenge: dict, policy: int, service_y):
     :param service_y: The nonce sent by the service that a user has requested access to.
     :return: Challenge response 'e' which needs to be sent back to the AP.
     """
-    return handle_challenge_util('AP', int(os.environ.get('ap_dlt_id')), challenge, policy, int(service_y, 16))
+    return handle_challenge_util('AP', 2000, challenge, policy, int(service_y, 16))

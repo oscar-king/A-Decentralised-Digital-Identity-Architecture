@@ -1,15 +1,11 @@
 # code_base has all the dependencies installed
-FROM code_base:latest
+FROM code_latest
 
 # Set the working directory to /app
 WORKDIR /ap
 
 # Copy the current directory contents into the container at /app
-ADD ap /ap
-ADD .env /ap
-#RUN pip uninstall -y uwsgi && apk add pcre pcre-dev libressl-dev libffi-dev && pip install uwsgi -I --no-cache-dir \
-#    && pip install wheel && python setup.py bdist_wheel && pip install dist/ap-0.0.1-py3-none-any.whl \
-#     && export FLASK_APP=ap && pip install waitress
+ADD . ./
 
 # run the command to start uWSGI
 #CMD ["waitress-serve", "--port=5001" ,"--call", "ap:create_app"]

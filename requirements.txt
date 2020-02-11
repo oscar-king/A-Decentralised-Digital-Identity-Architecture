@@ -14,7 +14,7 @@ coverage==4.5.4
 croniter==0.3.30
 cryptography==2.7
 datadispatch==1.0.0
--e git+https://github.com/oscar-king/UCL-Summer-Internship-2019.git@01ac1c39e7d86e479a7d69536d6ee4eea53ee2cb#egg=Decentralised_DigID
+-e git+https://github.com/HarryThomas17/A-Decentralised-Digital-Identity-Architecture.git#egg=Decentralised_DigID
 docutils==0.15.2
 fabric-sdk-py==0.8.1
 filelock==3.0.12
