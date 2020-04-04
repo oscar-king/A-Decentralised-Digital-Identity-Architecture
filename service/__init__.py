@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 ap_host = "ap"
 
+
 def create_app():
     app = Flask(__name__)
 

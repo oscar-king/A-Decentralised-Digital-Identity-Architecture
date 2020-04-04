@@ -28,6 +28,9 @@ def create_app():
     app.config['JWT_BLACKLIST_ENABLED'] = True
     app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
 
+    app.config['CP_REST_URI'] = 'http://cp_rest_api:3000'
+    app.config['CP_DLT_ID'] = "2000"
+
     from cp.models.RevokedTokenModel import RevokedTokenModel
 
     @jwt.token_in_blacklist_loader

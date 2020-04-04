@@ -6,7 +6,7 @@ from service import ap_host
 from crypto_utils.conversions import SigConversion
 from service import create_app, db
 from service.handlers import request_handler, verify_sig
-from service.models import User
+from service.handlers import User
 
 app = create_app()
 

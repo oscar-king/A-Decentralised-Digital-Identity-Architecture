@@ -142,7 +142,7 @@ def access_service_post():
     # Request-certs CP_i
     res = requests.get('http://%s:5000/request_certs' % ap_host, params=params)
     if res.status_code == 500:
-        flash(res.json().get('message'), "access_service_error")
+        flash("Error when requesting certs: " + res.json().get('message'), "access_service_error")
         return render_template('service_authenticate.html')
 
     # Get data from response and find corresponding keymodel
@@ -154,7 +154,7 @@ def access_service_post():
     try:
         validate_block(data)
     except Exception as e:
-        flash(str(e), "access_service_error")
+        flash("Error when validating block: " + str(e), "access_service_error")
         return render_template('service_authenticate.html')
 
     pubk = {
@@ -182,6 +182,7 @@ def access_service_post():
 
         # Receive access token for AP
         access_info = res.json()
+        err = access_info
         headers = {
             'Authorization': "Bearer " + access_info.get('access')
         }
@@ -202,7 +203,7 @@ def access_service_post():
             try:
                 validate_proof(proofs)
             except Exception as e:
-                flash(str(e), "access_service_error")
+                flash("Error when validating proofs: " + str(e), "access_service_error")
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
@@ -225,13 +226,14 @@ def access_service_post():
                 return render_template('thanks.html')
             else:
                 message = res.json().get('message')
-                flash(message, "access_service_error")
+                flash("Response code was not 200: " + message, "access_service_error")
                 return render_template('service_authenticate.html')
         except Exception as e:
-            flash(str(e), "access_service_error")
+            flash("There was an error when handling the challenge: " + str(e), "access_service_error")
             return render_template('service_authenticate.html')
     except Exception as e:
-        flash(str(e), "access_service_error")
+        flash("There was an error in the ownership proving stage. The blind signature likely failed to verify: "
+              + str(e), "access_service_error")
         return render_template('service_authenticate.html')
 
 

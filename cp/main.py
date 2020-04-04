@@ -112,7 +112,6 @@ def publish_policies():
         return redirect(url_for('main.publish_policies'))
 
 
-# TODO Link up worker so that these keys are posted onto the blockchain. Return needs to be the (CP_1, and the interval)
 @main.route('/generate_proofs', methods=['POST'])
 @jwt_required
 def generate_proofs():

@@ -8,6 +8,8 @@
 
 * type:           signature
 * setting:        integer groups
+
+Code adapted from: https://jhuisi.github.io/charm/_modules/protocol_a01.html#Asig
 """
 import hashlib
 import json

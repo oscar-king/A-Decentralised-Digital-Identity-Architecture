@@ -2,7 +2,9 @@ version: "3.7"
 
 services:
   composer:
-    image: hyperledger/composer-playground
+    build:
+      context: .
+      dockerfile: Playground-Dockerfile
     container_name: composer
     restart: always
     volumes:
@@ -11,7 +13,9 @@ services:
       - "8080:8080"
 
   cp_rest_api:
-    image: hyperledger/composer-rest-server
+    build:
+      context: .
+      dockerfile: REST-Server-Dockerfile
     container_name: cp_rest_api
     restart: always
     environment:
@@ -21,9 +25,13 @@ services:
       - ~/.composer:/home/composer/.composer
     ports:
       - "${cp_dlt_port}:3000"
+    depends_on:
+      - composer
 
   ap_rest_api:
-    image: hyperledger/composer-rest-server
+    build:
+      context: .
+      dockerfile: REST-Server-Dockerfile
     container_name: ap_rest_api
     restart: always
     environment:
@@ -33,6 +41,8 @@ services:
       - ~/.composer:/home/composer/.composer
     ports:
       - "${ap_dlt_port}:3000"
+    depends_on:
+      - composer
 
   cp:
     build: ./cp
@@ -72,25 +82,28 @@ services:
       - APP_NAME=User
       - FLASK_ENV=${FLASK_ENV}
     ports:
-      - "5000:5000"
+      - "${user_port}:5000"
 
 #  nginx:
 #    build: ./nginx
 #    container_name: nginx
 #    restart: always
-#    volumes:
-#      - ./cp/cp_cert.crt:/etc/nginx/cp_cert.crt
-#      - ./cp/cp_cert.key:/etc/nginx/cp_cert.key
-#      - ./cp/cp_cert.crt:/etc/nginx/ap_cert.crt
-#      - ./cp/cp_cert.key:/etc/nginx/ap_cert.key
-#      - ./cp/cp_cert.crt:/etc/nginx/service_cert.crt
-#      - ./cp/cp_cert.key:/etc/nginx/service_cert.key
 #    ports:
 #      - "80:80"
-#      - "8080:8080"
+#      - "${user_port}:${user_port}"
 #      - "${ap_port}:${ap_port}"
 #      - "${cp_port}:${cp_port}"
 #      - "${service_port}:${service_port}"
+#      - "${ap_dlt_port}:3000"
+#      - "${cp_dlt_port}:3000"
+#    depends_on:
+#      - user
+#      - service
+#      - cp
+#      - ap
+#      - cp_rest_api
+#      - ap_rest_api
+#      - composer
 
 networks:
   default:

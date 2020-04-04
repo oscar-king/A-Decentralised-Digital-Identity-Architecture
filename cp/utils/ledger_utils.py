@@ -3,8 +3,8 @@ import dotenv
 import requests
 from cp.models.PolicyModel import PolicyModel
 from crypto_utils.conversions import SigConversion
-
-dotenv.load_dotenv('../.env')
+from flask import current_app
+# dotenv.load_dotenv('../.env')
 
 
 # TODO delete pool after
@@ -15,16 +15,18 @@ def publish_pool(policy: int, timestamp: int) -> bool:
     :param timestamp:
     :return:
     """
+    cp_rest = current_app.config['CP_REST_URI']
+    cpid = current_app.config['CP_DLT_ID']
     pol = PolicyModel.query.get(policy)
     pool = pol.get_pool(timestamp) if pol is not None else None
     key = pol.get_key(timestamp) if pol is not None else None
-    res = requests.get("http://cp_rest_api:3000/api/ProofBlock")
-    cpid = 2000
+    res = requests.get(cp_rest + "/api/ProofBlock")
+
     if (res.status_code == 200) and (key is not None) and (pol is not None):
         data = {
             "$class": "digid.ProofBlock",
             "assetId": len(res.json()),
-            "owner": "resource:digid.CertificationProvider#" + str(cpid),
+            "owner": "resource:digid.CertificationProvider#" + cpid,
             "timestamp": timestamp,
             "lifetime": pol.lifetime,
             "key": {
@@ -36,7 +38,7 @@ def publish_pool(policy: int, timestamp: int) -> bool:
             "proofs": str(json.dumps(pool.pool))
         }
 
-        res = requests.post("http://cp_rest_api:3000/api/ProofBlock", json=data)
+        res = requests.post(cp_rest + "/api/ProofBlock", json=data)
         if res.status_code == 200:
             return True
         else:
@@ -57,7 +59,8 @@ def revoke_key(policy: int, timestamp: int) -> bool:
         'timestampParam': timestamp,
         'policyParam': policy
     }
-    res = requests.delete('http://cp_rest_api:3000/api/queries/ProofBlockQuery', params=args)
+    cp_rest = current_app.config['CP_REST_URI']
+    res = requests.delete(cp_rest + '/api/queries/ProofBlockQuery', params=args)
     if res.status_code == 200:
         return True
     else:
