@@ -13,7 +13,7 @@ def sig_manager():
         def __init__(self):
             self.groupObj = IntegerGroupQ()
             self.groupObj.paramgen(256)
-            self.signer = SignerBlindSignature(self.groupObj, 0, 0, 256)
+            self.signer = SignerBlindSignature(self.groupObj, 0, 0, 512)
             self.user = UserBlindSignature(self.signer.get_public_key())
             self.verify = BlindSignatureVerifier(self.signer.get_public_key())
             self.user = UserBlindSignature(self.signer.get_public_key())

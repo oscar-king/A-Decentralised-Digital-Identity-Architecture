@@ -5,9 +5,9 @@ from flask import Blueprint, render_template, redirect, url_for, request, json, 
 import os
 from time import localtime
 import dotenv
-from user import cp_host, service_host, ap_host
 from crypto_utils.conversions import SigConversion
 from user.models.keys import KeyModel
+from flask import current_app
 from user.models.sessions import SessionModel
 from user.utils.utils import handle_challenge, handle_response_hashes, prove_owner, validate_block, \
     handle_challenge_ap, validate_proof
@@ -89,7 +89,7 @@ def challenge_response_post(headers):
     to the following endpoint in order to receive (rnd, a, b1, b2) and the CP public key for the corresponding policy
     and time interval.
     """
-    res = requests.get("http://%s:5000/setup_keys" % cp_host, params=params, headers=headers)
+    res = requests.get("http://%s/setup_keys" % current_app.config['cp_host'], params=params, headers=headers)
     if res.status_code == 401:
         return redirect(url_for('auth.login'))
     try:
@@ -98,7 +98,7 @@ def challenge_response_post(headers):
 
         # Post keys to CP
         try:
-            res = requests.post("http://%s:5000/generate_proofs" % cp_host, json=json.dumps(es), headers=headers)
+            res = requests.post("http://%s/generate_proofs" % current_app.config['cp_host'], json=json.dumps(es), headers=headers)
             if res.status_code == 201:
                 # TODO remove hardcoded CP
                 data = res.json()
@@ -129,7 +129,7 @@ def access_service():
 @main.route("/access_service", methods=['POST'])
 def access_service_post():
     # Get nonce from service
-    res = requests.get('http://%s:5000/request' % service_host).json()
+    res = requests.get('http://{}/request'.format(current_app.config['service_host'])).json()
     service_y = res.get('y')
 
     # Setup parameters that are sent to the AP
@@ -140,7 +140,7 @@ def access_service_post():
     }
 
     # Request-certs CP_i
-    res = requests.get('http://%s:5000/request_certs' % ap_host, params=params)
+    res = requests.get('http://{}/request_certs'.format(current_app.config['ap_host']), params=params)
     if res.status_code == 500:
         flash("Error when requesting certs: " + res.json().get('message'), "access_service_error")
         return render_template('service_authenticate.html')
@@ -162,7 +162,7 @@ def access_service_post():
     }
 
     # Get the challenge from the AP in order to prove that the user owns a specific keypair
-    res = requests.get('http://%s:5000/prove_owner' % ap_host, params=pubk)
+    res = requests.get('http://{}/prove_owner'.format(current_app.config['ap_host']), params=pubk)
     y = res.json().get('y')
 
     # Prove the user owns the private key corresponding to a set of proofs in the block
@@ -178,7 +178,7 @@ def access_service_post():
         })
 
         # Post the proofs
-        res = requests.post('http://%s:5000/prove_owner' % ap_host, json=proof_resp, params=params)
+        res = requests.post('http://{}/prove_owner'.format(current_app.config['ap_host']), json=proof_resp, params=params)
 
         # Receive access token for AP
         access_info = res.json()
@@ -188,7 +188,7 @@ def access_service_post():
         }
 
         # Request challenge from AP to issue blind signature
-        challenge = requests.get('http://%s:5000/init_sig' % ap_host, headers=headers).json()
+        challenge = requests.get('http://{}/init_sig'.format(current_app.config['ap_host']), headers=headers).json()
 
         # Handle challenge
         try:
@@ -196,7 +196,7 @@ def access_service_post():
             e = json.dumps(handle_challenge_ap(challenge, params.get('policy'), service_y))
 
             # Send Response
-            proof_response = requests.post('http://%s:5000/generate_proof' % ap_host, json=e, headers=headers)
+            proof_response = requests.post('http://{}/generate_proof'.format(current_app.config['ap_host']), json=e, headers=headers)
             proofs = proof_response.json()
 
             # Validate Response
@@ -221,7 +221,7 @@ def access_service_post():
             }
 
             # Get access to service
-            res = requests.post('http://%s:5000/response' % service_host, json=json.dumps(resp_service))
+            res = requests.post('http://{}/response'.format(current_app.config['service_host']), json=json.dumps(resp_service))
             if res.status_code == 200:
                 return render_template('thanks.html')
             else:

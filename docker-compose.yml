@@ -89,13 +89,12 @@ services:
 #    container_name: nginx
 #    restart: always
 #    ports:
-#      - "80:80"
 #      - "${user_port}:${user_port}"
 #      - "${ap_port}:${ap_port}"
 #      - "${cp_port}:${cp_port}"
 #      - "${service_port}:${service_port}"
-#      - "${ap_dlt_port}:3000"
-#      - "${cp_dlt_port}:3000"
+##      - "${ap_dlt_port}:3000"
+##      - "${cp_dlt_port}:3000"
 #    depends_on:
 #      - user
 #      - service

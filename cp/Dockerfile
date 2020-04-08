@@ -10,9 +10,7 @@ ADD . ./
 # Run flask in dev mode
 RUN export FLASK_APP=app.py
 
-#CMD ["flask", "run", "--host=0.0.0.0"]
-# Test
-RUN pip install gunicorn
+#RUN pip install gunicorn
 
-#CMD ["flask", "run", "--host=0.0.0.0"]
-CMD ["gunicorn", "--workers=2", "--bind=0.0.0.0:5000","cp:create_app()"]
+CMD ["flask", "run", "--host=0.0.0.0"]
+#CMD ["gunicorn", "--workers=2", "--bind=:80","--forwarded-allow-ips=*","cp:create_app()"]

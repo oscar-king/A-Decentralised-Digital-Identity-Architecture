@@ -1,13 +1,9 @@
 # init.py
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-# from flask_login import LoginManager
 
 # init SQLAlchemy so we can use it later in our models
 db = SQLAlchemy()
-cp_host = "cp"
-ap_host = "ap"
-service_host = "service"
 
 
 def create_app():
@@ -16,7 +12,9 @@ def create_app():
     app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.sqlite'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+    app.config['cp_host'] = 'cp:5000'
+    app.config['ap_host'] = 'ap:5000'
+    app.config['service_host'] = 'service:5000'
     db.init_app(app)
 
     # blueprint for auth routes in our app
