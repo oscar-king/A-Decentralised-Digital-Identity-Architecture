@@ -1,106 +1,110 @@
 version: "3.7"
 
 services:
-
-  cp:
+  composer:
     build:
       context: .
-      dockerfile: cp/Dockerfile
-    container_name: cp
-    restart: always
-#    depends_on:
-#      - redis
-#      - nginx
-    environment:
-      - APP_NAME=CertificationProvider
-    expose:
-      - ${cp_port}
-
-#  cp_scheduler:
-#    build:
-#      context: .
-#      dockerfile: redis/Dockerfile
-#    container_name: scheduler
-#    restart: always
-#    depends_on:
-#      - redis
-#      - cp_worker
-#      - nginx
-#    links:
-#      - redis:redis
-#    command:
-#      - rqscheduler
-#
-#  cp_worker:
-#    build:
-#      context: .
-#      dockerfile: redis/Dockerfile
-#    container_name: worker
-#    restart: always
-#    depends_on:
-#      - redis
-#      - nginx
-#    links:
-#      - redis:redis
-#    command:
-#      - rqworker
-
-  ap:
-    build:
-      context: .
-      dockerfile: ap/Dockerfile
-    container_name: ap
-    restart: always
-#    depends_on:
-#      - nginx
-    environment:
-      - APP_NAME=AuthenticationProvider
-    expose:
-      - ${ap_port}
-
-  service:
-    build:
-      context: .
-      dockerfile: service/Dockerfile
-    container_name: service
-    restart: always
-#    depends_on:
-#      - nginx
-    environment:
-      - APP_NAME=Service
-    expose:
-      - ${service_port}
-
-  nginx:
-    build: ./nginx
-    container_name: nginx
+      dockerfile: Playground-Dockerfile
+    container_name: composer
     restart: always
     volumes:
-      - ./cp/cp_cert.crt:/etc/nginx/cp_cert.crt
-      - ./cp/cp_cert.key:/etc/nginx/cp_cert.key
-      - ./cp/cp_cert.crt:/etc/nginx/ap_cert.crt
-      - ./cp/cp_cert.key:/etc/nginx/ap_cert.key
-      - ./cp/cp_cert.crt:/etc/nginx/service_cert.crt
-      - ./cp/cp_cert.key:/etc/nginx/service_cert.key
+      - ~/.composer:/home/composer/.composer
     ports:
-      - "80:80"
       - "8080:8080"
-      - "${ap_port}:${ap_port}"
-      - "${cp_port}:${cp_port}"
-      - "${service_port}:${service_port}"
 
-#  redis:
-#    image: redis:latest
-##    build:
-##      context: .
-##      dockerfile: redis/Dockerfile
-#    container_name: redis
-#    command: redis-server
+  cp_rest_api:
+    build:
+      context: .
+      dockerfile: REST-Server-Dockerfile
+    container_name: cp_rest_api
+    restart: always
+    environment:
+      - COMPOSER_CARD=CP@digid
+      - COMPOSER_NAMESPACES=never
+    volumes:
+      - ~/.composer:/home/composer/.composer
+    ports:
+      - "${cp_dlt_port}:3000"
+    depends_on:
+      - composer
+
+  ap_rest_api:
+    build:
+      context: .
+      dockerfile: REST-Server-Dockerfile
+    container_name: ap_rest_api
+    restart: always
+    environment:
+      - COMPOSER_CARD=AP@digid
+      - COMPOSER_NAMESPACES=never
+    volumes:
+      - ~/.composer:/home/composer/.composer
+    ports:
+      - "${ap_dlt_port}:3000"
+    depends_on:
+      - composer
+
+  cp:
+    build: ./cp
+    container_name: cp
+    restart: always
+    environment:
+      - APP_NAME=CertificationProvider
+      - FLASK_ENV=${FLASK_ENV}
+    ports:
+      - "${cp_port}:5000"
+
+  ap:
+    build: ./ap
+    container_name: ap
+    restart: always
+    environment:
+      - APP_NAME=AuthenticationProvider
+      - FLASK_ENV=${FLASK_ENV}
+    ports:
+      - "${ap_port}:5000"
+
+  service:
+    build: ./service
+    container_name: service
+    restart: always
+    environment:
+      - APP_NAME=Service
+      - FLASK_ENV=${FLASK_ENV}
+    ports:
+      - "${service_port}:5000"
+
+  user:
+    build: ./user
+    container_name: user
+    restart: always
+    environment:
+      - APP_NAME=User
+      - FLASK_ENV=${FLASK_ENV}
+    ports:
+      - "${user_port}:5000"
+
+#  nginx:
+#    build: ./nginx
+#    container_name: nginx
 #    restart: always
-##    expose:
-##      - "6379"
-#    volumes:
-#      - .:/redis/data
+#    ports:
+#      - "${user_port}:${user_port}"
+#      - "${ap_port}:${ap_port}"
+#      - "${cp_port}:${cp_port}"
+#      - "${service_port}:${service_port}"
+##      - "${ap_dlt_port}:3000"
+##      - "${cp_dlt_port}:3000"
+#    depends_on:
+#      - user
+#      - service
+#      - cp
+#      - ap
+#      - cp_rest_api
+#      - ap_rest_api
+#      - composer
 
-
-
+networks:
+  default:
+    external:
+      name: composer_default

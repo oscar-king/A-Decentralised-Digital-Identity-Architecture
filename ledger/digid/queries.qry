@@ -1,0 +1,20 @@
+query ProofBlockQuery {
+  description: "Get a proofblock by timestamp, policy, and CP"
+  statement: 
+    SELECT digid.ProofBlock
+    WHERE ((owner == _$ownerParam) AND (timestamp == _$timestampParam) AND (key.policy == _$policyParam))
+}
+
+query ProofBlockQuerybyTimestamp {
+  description: "Get proofblocks by timestamp"
+  statement: 
+    SELECT digid.ProofBlock
+    WHERE (timestamp == _$timestampParam)
+}
+
+query CertificationProviderQuery {
+  description: "Get CertificationProvider information"
+  statement: 
+    SELECT digid.CertificationProvider
+    WHERE (participantID == _$participantID)
+}
