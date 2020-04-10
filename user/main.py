@@ -89,16 +89,18 @@ def challenge_response_post(headers):
     to the following endpoint in order to receive (rnd, a, b1, b2) and the CP public key for the corresponding policy
     and time interval.
     """
-    res = requests.get("http://%s/setup_keys" % current_app.config['cp_host'], params=params, headers=headers)
+    res = requests.get("http://{}/setup_keys".format(current_app.config['cp_host']), params=params, headers=headers)
     if res.status_code == 401:
         return redirect(url_for('auth.login'))
+    if res.status_code == 500:
+        flash(res.json().get('message'), "post_keys")
     try:
         # Generates the challenge response
         es = handle_challenge(res.json(), params.get('policy'))
 
         # Post keys to CP
         try:
-            res = requests.post("http://%s/generate_proofs" % current_app.config['cp_host'], json=json.dumps(es), headers=headers)
+            res = requests.post("http://{}/generate_proofs".format(current_app.config['cp_host']), json=json.dumps(es), headers=headers)
             if res.status_code == 201:
                 # TODO remove hardcoded CP
                 data = res.json()

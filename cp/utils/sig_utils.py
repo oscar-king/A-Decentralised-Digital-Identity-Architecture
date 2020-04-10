@@ -3,13 +3,14 @@ import json
 from Crypto.Hash.SHA256 import SHA256Hash
 from charm.toolbox.conversion import Conversion
 from charm.toolbox.integergroup import IntegerGroupQ
+from crypto_utils.conversions import SigConversion
+from crypto_utils.signatures import SignerBlindSignature
 from flask_jwt_extended import current_user
+
 from cp.models.KeyModel import KeyModel
 from cp.models.PolicyModel import PolicyModel
 from cp.models.SigVarsModel import SigVarsModel
 from cp.models.UserModel import UserModel
-from crypto_utils.signatures import SignerBlindSignature
-from crypto_utils.conversions import SigConversion
 
 
 def setup_key_handler(timestamp: int, number: int, policy: int):

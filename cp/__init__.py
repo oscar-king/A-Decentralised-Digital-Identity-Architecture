@@ -10,7 +10,6 @@ from sqlalchemy.pool import StaticPool
 
 db = SQLAlchemy()
 jwt = JWTManager()
-host = "0.0.0.0"
 
 def create_app():
     app = Flask(__name__, template_folder='templates')
@@ -63,6 +62,7 @@ def create_app():
     # blueprint for non-auth parts of app
     from cp.main import main as main_blueprint
     app.register_blueprint(main_blueprint)
+
 
     db.create_all(app=app)
     return app

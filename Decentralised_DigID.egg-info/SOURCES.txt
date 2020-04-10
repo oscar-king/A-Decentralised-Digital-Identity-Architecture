@@ -5,11 +5,12 @@ Decentralised_DigID.egg-info/dependency_links.txt
 Decentralised_DigID.egg-info/top_level.txt
 ap/__init__.py
 ap/app.py
-ap/models.py
+ap/setup.py
 cp/__init__.py
 cp/app.py
 cp/auth.py
 cp/main.py
+cp/setup.py
 service/__init__.py
 service/app.py
 service/handlers.py

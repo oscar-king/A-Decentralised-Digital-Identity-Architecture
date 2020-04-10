@@ -34,5 +34,10 @@ def create_app():
     def user_loader_callback(identity):
         return Session.query.get(identity)
 
+    # blueprint for non-auth parts of app
+    from ap.main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
+
     db.create_all(app=app)
     return app

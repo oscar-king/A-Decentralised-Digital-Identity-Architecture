@@ -56,4 +56,17 @@ def signup_post():
 
 @auth.route('/logout')
 def logout():
-    return redirect(url_for('main.index'))
+    first = SessionModel.query.first()
+    if first:
+        access_token = SessionModel.query.first().access_token
+        headers = {
+            'Authorization': "Bearer " + access_token
+        }
+        res = requests.delete("http://{}/logout".format(current_app.config['cp_host']), headers=headers)
+        if res.status_code == 200:
+            return redirect(url_for('auth.login'))
+        else:
+            flash(res.json().get('message'))
+            return redirect(url_for('main.index'))
+    else:
+        return redirect(url_for('auth.login'))
