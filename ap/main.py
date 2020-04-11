@@ -177,3 +177,16 @@ def gen_proof():
     else:
         proof = json.dumps(gen_proof_handler(e))
         return proof, 201
+
+
+@main.route('/cp_keys')
+def get_cp_keys():
+    from ap.models.CPKeyModel import CPKeyModel
+    keys = CPKeyModel.query.all()
+    if len(keys) == 0:
+        return "None", 200
+    else:
+        res = []
+        for key in keys:
+            res.append(str(key))
+        return jsonify(res), 200

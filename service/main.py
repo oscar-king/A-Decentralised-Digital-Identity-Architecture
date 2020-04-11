@@ -3,8 +3,10 @@ import os
 import requests
 from flask import json, jsonify, request, current_app, Blueprint
 from crypto_utils.conversions import SigConversion
+from service import db
 from service.handlers import request_handler, verify_sig
 from service.handlers import User
+from service.utils import get_ap_key
 
 main = Blueprint('main', __name__, template_folder='templates')
 
@@ -29,27 +31,25 @@ def request_y():
 def user_response():
     data = json.loads(request.json)
 
-    params = {
-        'policy': data.get('policy'),
-        'timestamp': data.get('timestamp')
-    }
+    # params = {
+    #     'policy': data.get('policy'),
+    #     'timestamp': data.get('timestamp')
+    # }
+    policy = data.get('policy')
+    timestamp = data.get('timestamp')
 
     # Find y in database
     user = User.query.get(data.get('y'))
     if user is None:
         return jsonify({'message': 'Could not find y'}), 500
 
-    # TODO: Ideally the keys should have been distributed by some other means
-    res = requests.get('http://{}/pubkey'.format(current_app.config['ap_host']), params=params)
-    if res.status_code == 200:
-        key = res.json()
-        key = SigConversion.convert_dict_modint(key)
-        sig = json.loads(data.get('sig'))
-        sig = SigConversion.convert_dict_modint(sig)
-        if verify_sig(key, sig, data.get('y')):
-            return jsonify({'message': 'Success'}), 200
-        else:
-            return jsonify({'message': 'Could not verify signature'}), 500
+    key = get_ap_key(timestamp, policy)
+    sig = json.loads(data.get('sig'))
+    sig = SigConversion.convert_dict_modint(sig)
+    if verify_sig(key, sig, data.get('y')):
+        return jsonify({'message': 'Success'}), 200
+    else:
+        return jsonify({'message': 'Could not verify signature'}), 500
 
 
 """

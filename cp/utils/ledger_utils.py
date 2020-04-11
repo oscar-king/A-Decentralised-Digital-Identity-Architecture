@@ -1,10 +1,10 @@
 import json
-import dotenv
 import requests
+
+from cp import db
 from cp.models.PolicyModel import PolicyModel
 from crypto_utils.conversions import SigConversion
 from flask import current_app
-# dotenv.load_dotenv('../.env')
 
 
 # TODO delete pool after
@@ -40,6 +40,8 @@ def publish_pool(policy: int, timestamp: int) -> bool:
 
         res = requests.post(cp_rest + "/api/ProofBlock", json=data)
         if res.status_code == 200:
+            db.session.delete(pool)
+            db.session.commit()
             return True
         else:
             return False
@@ -55,7 +57,7 @@ def revoke_key(policy: int, timestamp: int) -> bool:
     :return:
     """
     args = {
-        'participantIDParam': '5488',
+        'participantIDParam': current_app.config['CP_DLT_ID'],
         'timestampParam': timestamp,
         'policyParam': policy
     }

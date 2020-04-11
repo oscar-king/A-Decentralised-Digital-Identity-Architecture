@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 
 from ap import db
 from ap.models.KeyModel import KeyModel
+
 from crypto_utils.signatures import SignerBlindSignature
 
 

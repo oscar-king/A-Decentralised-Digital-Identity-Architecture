@@ -10,7 +10,7 @@ services:
     volumes:
       - ~/.composer:/home/composer/.composer
     ports:
-      - "8080"
+      - "${composer_port}"
 
   cp_rest_api:
     build:
@@ -103,7 +103,7 @@ services:
       - "${service_port}:${service_port}"
       - "${ap_dlt_port}:${ap_dlt_port}"
       - "${cp_dlt_port}:${cp_dlt_port}"
-      - "8080:8080"
+      - "${composer_port}:${composer_port}"
     depends_on:
       - user
       - service

@@ -100,9 +100,12 @@ class Session(db.Model):
         # Convert to modular integer dictionary
         sig = SigConversion.convert_dict_modint(json.loads(blind_signature))
         cp_pubk = get_cp_pubkey(cp, self.timestamp, self.policy)
-        verifier = BlindSignatureVerifier(cp_pubk)
-        message = Conversion.OS2IP(self.pubk)
-        return verifier.verify(sig, message)
+        if cp_pubk is None:
+            return False
+        else:
+            verifier = BlindSignatureVerifier(cp_pubk)
+            message = Conversion.OS2IP(self.pubk)
+            return verifier.verify(sig, message)
 
     @staticmethod
     def find(y: str):

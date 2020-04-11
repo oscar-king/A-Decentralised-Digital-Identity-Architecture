@@ -1,23 +1,9 @@
 import json
-
-from flask_login import UserMixin
-
+from ap import db
 from crypto_utils.conversions import SigConversion
-from service import db
 
 
-class User(UserMixin, db.Model):
-    y = db.Column(db.String(256), primary_key=True)
-
-    def __init__(self, y):
-        self.y = y
-
-    def save_to_db(self):
-        db.session.add(self)
-        db.session.commit()
-
-
-class APKeyModel(db.Model):
+class CPKeyModel(db.Model):
     timestamp_ = db.Column(db.Integer, primary_key=True)
     policy_ = db.Column(db.Integer, primary_key=True)
     public_key_ = db.Column(db.String)
@@ -56,7 +42,7 @@ class APKeyModel(db.Model):
 
     @staticmethod
     def find(timestamp: int, policy: int):
-        tmp = APKeyModel.query.get((timestamp, policy))
+        tmp = CPKeyModel.query.get((timestamp, policy))
         if tmp:
             return tmp
         else:
