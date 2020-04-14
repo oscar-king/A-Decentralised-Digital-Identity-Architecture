@@ -15,6 +15,7 @@ def create_app():
     app.config['cp_host'] = 'cp:5000'
     app.config['ap_host'] = 'ap:5000'
     app.config['service_host'] = 'service:5000'
+    app.config['cp_dlt_id'] = 2000
     db.init_app(app)
 
     # blueprint for auth routes in our app

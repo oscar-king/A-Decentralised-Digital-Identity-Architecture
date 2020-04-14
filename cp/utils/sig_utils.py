@@ -99,12 +99,13 @@ def gen_proofs_handler(policy, es):
 
             resp.append({
                 'timestamp': timestamp,
-                'hash_proof': hash_proof
+                'hash_proof': hash_proof,
+                'proof': proofs
             })
 
     resp = {
         'policy': policy.policy,
-        'hash_proofs': resp
+        'data': resp
     }
 
     return resp

@@ -1,6 +1,8 @@
 import json
 from typing import Tuple
 from charm.toolbox.conversion import Conversion
+from flask import current_app
+
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
 from user.models.keys import KeyModel
@@ -49,7 +51,7 @@ def handle_challenge(resp: dict or list, policy: int):
     """
     es = list()
     for x in resp:
-        e = handle_challenge_util('CP', 2000, x, policy)
+        e = handle_challenge_util('CP', current_app.config['cp_dlt_id'], x, policy)
         es.append(e)
 
     ret = {
@@ -69,12 +71,12 @@ def handle_response_hashes(resp: dict, cp: int, policy: int):
     :param policy: The policy ID for which the signatures were requested.
     :return: None
     """
-    for x in resp.get('hash_proofs'):
+    for x in resp.get('data'):
         timestamp = int(x.get('timestamp'))
-        proof_hash = x.get('hash_proof')
         key_model = KeyModel.query.filter_by(provider_type_=1,
                                              p_id_=cp, policy_=policy, interval_timestamp_=timestamp).first()
-        key_model.proof_hash = proof_hash
+        key_model.proof_hash = x.get('hash_proof')
+        key_model.proof = x.get('proof')
         key_model.save_to_db()
 
 
@@ -112,6 +114,7 @@ def validate_block(data: dict) -> None:
     :param data:
     :return: (None)
     """
+
     proofs = json.loads(data.get('proofs'))
     p_hash = int(data.get('proofs_hash'))
 
@@ -120,6 +123,16 @@ def validate_block(data: dict) -> None:
     if p_hash != tmp_hash:
         raise Exception("SHA256 hash of received proof block doesn't match the one calculated")
 
+# def verify_block_hash(data: dict) -> bool:
+#     proofs = json.loads(data.get('proofs'))
+#     p_hash = int(data.get('proofs_hash'))
+#
+#     tmp_hash = hash_util(proofs)
+#
+#     if p_hash != tmp_hash:
+#         raise Exception("SHA256 hash of received proof block doesn't match the one calculated")
+#     else:
+#         return True
 
 def validate_proof(data: dict) -> None:
     """
@@ -143,4 +156,4 @@ def handle_challenge_ap(challenge: dict, policy: int, service_y):
     :param service_y: The nonce sent by the service that a user has requested access to.
     :return: Challenge response 'e' which needs to be sent back to the AP.
     """
-    return handle_challenge_util('AP', 2000, challenge, policy, int(service_y, 16))
+    return handle_challenge_util('AP', current_app.config['cp_dlt_id'], challenge, policy, int(service_y, 16))

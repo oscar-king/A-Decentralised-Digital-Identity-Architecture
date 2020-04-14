@@ -4,16 +4,16 @@
 
 {% block content %}
 <div class="column is-4 is-offset-4">
-    <h3 class="title">Access Service</h3>
+    <h3 class="title">Verify Signature Proofs</h3>
     <div class="box">
-        {% with messages = get_flashed_messages(category_filter=["access_service_error"]) %}
+        {% with messages = get_flashed_messages(category_filter=["verify_error"]) %}
             {% if messages %}
                 <div class="notification is-danger">
                     {{ messages[0]}}.
                 </div>
             {% endif %}
         {% endwith %}
-        {% with messages = get_flashed_messages(category_filter=["access_service"]) %}
+        {% with messages = get_flashed_messages(category_filter=["verify_success"]) %}
             {% if messages %}
                 <div class="notification is-success">
                     {{ messages[0] }}
@@ -36,13 +36,7 @@
                     <input class="input is-large" type="datetime-local" name="timestamp" autofocus="">
                 </div>
             </div>
-            <div class="field">
-                <label class="checkbox">
-                    <input type="checkbox" name="verify">
-                    Verify
-                </label>
-            </div>
-            <button class="button is-block is-info is-large is-fullwidth">Access</button>
+            <button class="button is-block is-info is-large is-fullwidth">Verify</button>
         </form>
     </div>
 </div>

@@ -106,7 +106,7 @@ def challenge_response_post(headers):
                 data = res.json()
 
                 # The response hashes need to be saved with the corresponding policy at a given timestamp
-                handle_response_hashes(data, 2000, data.get('policy'))
+                handle_response_hashes(data, current_app.config['cp_dlt_id'], data.get('policy'))
                 flash("Keys have been generated", 'keygen_success')
                 return render_template('generate_keys.html')
             else:
@@ -117,6 +117,20 @@ def challenge_response_post(headers):
     except Exception as e:
         flash(str(e), "post_keys")
         return render_template('generate_keys.html')
+
+
+@main.route("/verify", methods=['GET'])
+def verify():
+    """
+        Renders the verify.html page.
+        :return:
+        """
+    return render_template('verify.html')
+
+
+@main.route("/verify", methods=['POST'])
+def verify_post():
+    pass
 
 
 @main.route("/access_service", methods=['GET'])
@@ -133,6 +147,7 @@ def access_service_post():
     # Get nonce from service
     res = requests.get('http://{}/request'.format(current_app.config['service_host'])).json()
     service_y = res.get('y')
+    VERIFY = True if request.form.get('verify') else False
 
     # Setup parameters that are sent to the AP
     params = {
@@ -141,23 +156,27 @@ def access_service_post():
         'policy': int(request.form.get('policy'))
     }
 
-    # Request-certs CP_i
-    res = requests.get('http://{}/request_certs'.format(current_app.config['ap_host']), params=params)
-    if res.status_code == 500:
-        flash("Error when requesting certs: " + res.json().get('message'), "access_service_error")
-        return render_template('service_authenticate.html')
-
-    # Get data from response and find corresponding keymodel
-    data = res.json()
     key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
                                          interval_timestamp_=params.get('timestamp')).first()
 
-    # Validate that block has not been altered
-    try:
-        validate_block(data)
-    except Exception as e:
-        flash("Error when validating block: " + str(e), "access_service_error")
-        return render_template('service_authenticate.html')
+    data = None
+    if VERIFY:
+        # Request-certs CP_i
+        res = requests.get('http://{}/request_certs'.format(current_app.config['ap_host']), params=params)
+        if res.status_code == 500:
+            flash("Error when requesting certs: " + res.json().get('message'), "access_service_error")
+            return render_template('service_authenticate.html')
+
+        # Get data from response and find corresponding keymodel
+        data = res.json()
+
+
+        # Validate that block has not been altered
+        try:
+            validate_block(data)
+        except Exception as e:
+            flash("Error when validating block: " + str(e), "access_service_error")
+            return render_template('service_authenticate.html')
 
     pubk = {
         'pubk': Conversion.OS2IP(key_model.public_key)
@@ -170,8 +189,12 @@ def access_service_post():
     # Prove the user owns the private key corresponding to a set of proofs in the block
     # Proof consists of the signature of the private key on the nonce y and the blind signature on the public key
     try:
-        (proof, proof_owner) = prove_owner(y, data, key_model.proof_hash)
-        blind_signature = key_model.generate_blind_signature(proof.get('proofs'))
+        if VERIFY:
+            (proof, proof_owner) = prove_owner(y, data, key_model.proof_hash)
+            blind_signature = key_model.generate_blind_signature(proof.get('proofs'))
+        else:
+            proof_owner = key_model.sign(y)
+            blind_signature = key_model.generate_blind_signature()
 
         proof_resp = json.dumps({
             'y': y,

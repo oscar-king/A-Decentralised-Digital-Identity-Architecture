@@ -1,10 +1,12 @@
 # keys.py
+import json
 from typing import Tuple
 
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
 from charm.toolbox.conversion import Conversion
+from sqlalchemy import JSON
 
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
@@ -20,6 +22,7 @@ class KeyModel(db.Model):
     user_blind_sig_ = db.Column(db.String)
     interval_timestamp_ = db.Column(db.Integer)
     proof_hash_ = db.Column(db.String)
+    proof_ = db.Column(JSON)
 
     def __init__(self, provider_type: int, p_id: int, policy: int = 1, signer: UserBlindSignature = None,
                  interval: int = None):
@@ -68,7 +71,7 @@ class KeyModel(db.Model):
     @property
     def p_id(self) -> int:
         """
-        :return: cp: String
+        :return: provider_type_id: String
         """
         return self.p_id_
 
@@ -107,6 +110,17 @@ class KeyModel(db.Model):
     def proof_hash(self, hs: int or str) -> None:
         self.proof_hash_ = str(hs)
 
+    @property
+    def proof(self):
+        res = dict()
+        for key in self.proof_.keys():
+            res[key] = SigConversion.strlist2modint(self.proof_[key])
+        return res
+
+    @proof.setter
+    def proof(self, proof):
+        self.proof_ = proof
+
     def sign(self, y:str) -> Tuple[int, int]:
         key = self.key_pair
         msg_hash = SHA256.new(bytes.fromhex(y))
@@ -114,10 +128,17 @@ class KeyModel(db.Model):
         signature = signer.sign(msg_hash)
         return Conversion.OS2IP(msg_hash.digest()), Conversion.OS2IP(signature)
 
-    def generate_blind_signature(self, proof):
-        signer = self.signer
-        proof = SigConversion.convert_dict_modint(proof)
-        return signer.gen_signature(proof)
+    def generate_blind_signature(self, proof=None):
+        if proof is not None:
+            signer = self.signer
+            proof = SigConversion.convert_dict_modint(proof)
+            return signer.gen_signature(proof)
+        else:
+            if self.proof is None:
+                raise Exception("Did not provide a proof nor is one set in the keymodel!")
+            else:
+
+                return self.signer.gen_signature(self.proof)
 
     def save_to_db(self):
         db.session.add(self)
