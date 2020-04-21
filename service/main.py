@@ -39,17 +39,19 @@ def user_response():
     timestamp = data.get('timestamp')
 
     # Find y in database
-    user = User.query.get(data.get('y'))
+    user = User.find(data.get('y'))
     if user is None:
         return jsonify({'message': 'Could not find y'}), 500
-
-    key = get_ap_key(timestamp, policy)
-    sig = json.loads(data.get('sig'))
-    sig = SigConversion.convert_dict_modint(sig)
-    if verify_sig(key, sig, data.get('y')):
-        return jsonify({'message': 'Success'}), 200
-    else:
-        return jsonify({'message': 'Could not verify signature'}), 500
+    try:
+        key = get_ap_key(timestamp, policy)
+        sig = json.loads(data.get('sig'))
+        sig = SigConversion.convert_dict_modint(sig)
+        if verify_sig(key, sig, data.get('y')):
+            return jsonify({'message': 'Success'}), 200
+        else:
+            return jsonify({'message': 'Could not verify signature'}), 500
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
 
 
 """

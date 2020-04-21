@@ -10,7 +10,7 @@ from user.models.keys import KeyModel
 from flask import current_app
 from user.models.sessions import SessionModel
 from user.utils.utils import handle_challenge, handle_response_hashes, prove_owner, validate_block, \
-    handle_challenge_ap, validate_proof
+    handle_challenge_ap, validate_proof, verify_block_hash
 import dateutil.parser
 
 main = Blueprint('main', __name__, template_folder='templates')
@@ -130,7 +130,31 @@ def verify():
 
 @main.route("/verify", methods=['POST'])
 def verify_post():
-    pass
+    params = {
+        'cp': int(request.form.get('cp')),
+        'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
+        'policy': int(request.form.get('policy'))
+    }
+
+    key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
+                                         interval_timestamp_=params.get('timestamp')).first()
+
+    res = requests.get('http://{}/request_certs'.format(current_app.config['ap_host']), params=params)
+    if res.status_code == 500:
+        flash("Error when requesting certs: " + res.json().get('message'), "verify_error")
+        return render_template('verify.html')
+
+    # Get data from response and find corresponding keymodel
+    data = res.json()
+
+    try:
+        validate_block(data, key_model.proof_hash)
+    except Exception as e:
+        flash("Error when validating block: " + str(e), "verify_error")
+        return render_template('verify.html')
+
+    flash("Verified", "verify_success")
+    return render_template('verify.html')
 
 
 @main.route("/access_service", methods=['GET'])
@@ -170,10 +194,9 @@ def access_service_post():
         # Get data from response and find corresponding keymodel
         data = res.json()
 
-
         # Validate that block has not been altered
         try:
-            validate_block(data)
+            verify_block_hash(data)
         except Exception as e:
             flash("Error when validating block: " + str(e), "access_service_error")
             return render_template('service_authenticate.html')
@@ -232,7 +255,7 @@ def access_service_post():
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=2000, provider_type_=2).first()
+            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
@@ -244,6 +267,10 @@ def access_service_post():
                 'policy': params.get('policy'),
                 'timestamp': params.get('timestamp')
             }
+
+            # Delete after use
+            ap_key_model.delete()
+            # key_model.delete()
 
             # Get access to service
             res = requests.post('http://{}/response'.format(current_app.config['service_host']), json=json.dumps(resp_service))
@@ -265,3 +292,24 @@ def access_service_post():
 @main.route('/thanks')
 def thanks():
     return render_template('thanks.html')
+
+
+@main.route('/query')
+def query():
+    return render_template('query.html')
+
+
+@main.route('/query', methods=['POST'])
+def query_post():
+    params = {
+        'id': int(request.form.get('id')),
+        'type': int(request.form.get('type')),
+        'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
+        'policy': int(request.form.get('policy'))
+    }
+
+    # key_model = KeyModel.query.filter_by(provider_type_=params.get('type'), p_id_=params.get('id'), policy_=params.get('policy'),
+    #                                      interval_timestamp_=params.get('timestamp')).first()
+
+    key_model = KeyModel.find(params.get('type'), params.get('policy'), params.get('timestamp'))
+    return json.dumps(str(key_model), key_model), 200

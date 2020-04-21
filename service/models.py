@@ -12,6 +12,14 @@ class User(UserMixin, db.Model):
     def __init__(self, y):
         self.y = y
 
+    @staticmethod
+    def find(y: str):
+        tmp = User.query.get(y)
+        if tmp:
+            return tmp
+        else:
+            return None
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()

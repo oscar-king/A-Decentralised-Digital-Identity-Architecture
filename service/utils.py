@@ -20,3 +20,7 @@ def get_ap_key(timestamp: int, policy: int):
             key = res.json()
             APKeyModel(timestamp, policy, json.dumps(key)).save_to_db()
             return SigConversion.convert_dict_modint(key)
+        elif res.status_code == 400:
+            raise Exception(res.json().get('message'))
+        else:
+            raise Exception("Exception occurred while finding AP signatures for the Service")

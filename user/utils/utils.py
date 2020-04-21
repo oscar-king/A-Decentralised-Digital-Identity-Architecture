@@ -107,14 +107,34 @@ def hash_util(d: dict or list) -> int:
     return Conversion.OS2IP(hash_tmp.digest())
 
 
-def validate_block(data: dict) -> None:
+def validate_block(data: dict, proof_hash: int = None) -> None:
     """
     Checks if the hash of the proofs sent in the Response is the same as the one that is generated user side. If they do
     not match an exception is raised.
     :param data:
+    :param proof_hash:
     :return: (None)
     """
 
+    # proofs = json.loads(data.get('proofs'))
+    # p_hash = int(data.get('proofs_hash'))
+    #
+    # tmp_hash = hash_util(proofs)
+    #
+    # if p_hash != tmp_hash:
+    #     raise Exception("SHA256 hash of received proof block doesn't match the one calculated")
+    if not (verify_block_hash(data) and verify_proof_hash(data, proof_hash)):
+        raise Exception("Couldn't find hash matching input parameters in block.")
+
+
+def verify_proof_hash(data: dict, proof_hash_idx: int) -> bool:
+    for x in json.loads(data.get('proofs')):
+        if x.get('hash') == proof_hash_idx:
+            return True
+    return False
+
+
+def verify_block_hash(data: dict) -> bool:
     proofs = json.loads(data.get('proofs'))
     p_hash = int(data.get('proofs_hash'))
 
@@ -122,17 +142,9 @@ def validate_block(data: dict) -> None:
 
     if p_hash != tmp_hash:
         raise Exception("SHA256 hash of received proof block doesn't match the one calculated")
+    else:
+        return True
 
-# def verify_block_hash(data: dict) -> bool:
-#     proofs = json.loads(data.get('proofs'))
-#     p_hash = int(data.get('proofs_hash'))
-#
-#     tmp_hash = hash_util(proofs)
-#
-#     if p_hash != tmp_hash:
-#         raise Exception("SHA256 hash of received proof block doesn't match the one calculated")
-#     else:
-#         return True
 
 def validate_proof(data: dict) -> None:
     """
@@ -156,4 +168,4 @@ def handle_challenge_ap(challenge: dict, policy: int, service_y):
     :param service_y: The nonce sent by the service that a user has requested access to.
     :return: Challenge response 'e' which needs to be sent back to the AP.
     """
-    return handle_challenge_util('AP', current_app.config['cp_dlt_id'], challenge, policy, int(service_y, 16))
+    return handle_challenge_util('AP', current_app.config['ap_dlt_id'], challenge, policy, int(service_y, 16))

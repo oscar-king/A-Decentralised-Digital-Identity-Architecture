@@ -11,7 +11,7 @@ from crypto_utils.conversions import SigConversion
 
 
 def setup_key_handler(y: str):
-    session = Session.query.get(y)
+    session = Session.find(y)
     policy = PolicyModel.query.get(session.policy)
 
     if policy is None:

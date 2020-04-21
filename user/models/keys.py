@@ -7,24 +7,24 @@ from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
 from charm.toolbox.conversion import Conversion
 from sqlalchemy import JSON
-
+from datetime import datetime
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
 from user import db
 
 
 class KeyModel(db.Model):
-    id_ = db.Column(db.Integer, primary_key=True)
+    # id_ = db.Column(db.Integer, primary_key=True)
+    p_id_ = db.Column(db.Integer, primary_key=True)
+    policy_ = db.Column(db.Integer, primary_key=True)
+    interval_timestamp_ = db.Column(db.Integer, primary_key=True)
     provider_type_ = db.Column(db.Integer)
-    p_id_ = db.Column(db.Integer)
-    policy_ = db.Column(db.Integer)
     key_pair_ = db.Column(db.LargeBinary)
     user_blind_sig_ = db.Column(db.String)
-    interval_timestamp_ = db.Column(db.Integer)
     proof_hash_ = db.Column(db.String)
     proof_ = db.Column(JSON)
 
-    def __init__(self, provider_type: int, p_id: int, policy: int = 1, signer: UserBlindSignature = None,
+    def __init__(self, provider_type: str, p_id: int, policy: int = 1, signer: UserBlindSignature = None,
                  interval: int = None):
         check = KeyModel.query.filter_by(provider_type_=provider_type, p_id_=p_id, policy_=policy,
                                          interval_timestamp_=interval)
@@ -37,6 +37,10 @@ class KeyModel(db.Model):
             self.key_pair_ = ECC.generate(curve='P-256').export_key(format='DER')
             self.user_blind_sig_ = signer.encode() if signer is not None else None
             self.interval_timestamp_ = interval
+
+    def __repr__(self):
+        time = datetime.utcfromtimestamp(self.interval_timestamp)
+        return "Key[type='%s' timestamp='%s', policy='%s']" % (self.type, time.strftime('%d-%m-%Y %H:%M'), self.policy)
 
     @property
     def id(self) -> int:
@@ -145,4 +149,13 @@ class KeyModel(db.Model):
         db.session.commit()
 
     def delete(self):
-        pass
+        db.session.delete(self)
+        db.session.commit()
+
+    @staticmethod
+    def find(type: int, policy: int, timestamp: int):
+        tmp = KeyModel.query.get((type, policy, timestamp))
+        if tmp:
+            return tmp
+        else:
+            return None

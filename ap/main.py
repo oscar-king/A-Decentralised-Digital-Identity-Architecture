@@ -139,7 +139,7 @@ def get_key():
     timestamp = int(request.args.get('timestamp'))
     policy = int(request.args.get('policy'))
 
-    key = KeyModel.query.get((timestamp, policy))
+    key = KeyModel.find(timestamp, policy)
     if key is None:
         return jsonify({'message': 'No key matching those parameters'}), 400
     else:
