@@ -172,6 +172,7 @@ def access_service_post():
     res = requests.get('http://{}/request'.format(current_app.config['service_host'])).json()
     service_y = res.get('y')
     VERIFY = True if request.form.get('verify') else False
+    DELETE = True if request.form.get('delete') else False
 
     # Setup parameters that are sent to the AP
     params = {
@@ -270,7 +271,10 @@ def access_service_post():
 
             # Delete after use
             ap_key_model.delete()
-            # key_model.delete()
+
+            # Delete if user indicated
+            if DELETE:
+                key_model.delete()
 
             # Get access to service
             res = requests.post('http://{}/response'.format(current_app.config['service_host']), json=json.dumps(resp_service))
