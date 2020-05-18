@@ -58,6 +58,9 @@ This builds the image from the dockerfile located in the project root.
 ## Running
 2 shell scripts are included to start and stop the project (bring up Hyperledger Fabric and Flask containers). To start the project, run `./start.sh`. To stop the project, run `./stop.sh`. After `start.sh` completes successfully, you can bring up and down the Flask containers only with `docker-compose down` and `docker-compose up --build -d`.
 
+## Usage
+Once the docker containers are running, navigate to the pages for the AP and CP, for both create a policy. This can be done by filling out the forms on the pages `Generate AP Policy` and `Generate Policy` for the AP and CP respectively. Then you must sign up on the User page, and subsequently log in. After logging in go to `Generate and Post Keys`. Here you can generate a the desired number of credentials with the CP. After these keys have been generated return the the CP page. The CP must publish the generated key by filling out the form on the `Publish Policies` page. Once this is done the User can either verify or use a key by navigating to the `Verify` and `Access Service` page respectively, where the corresponding forms must be filled out. 
+
 ## Sockets
 The default configuration for the project is to have docker compose deploy all the containers locally on `localhost/0.0.0.0`. Additionally the endpoints for the specific entities are as follows:
 
