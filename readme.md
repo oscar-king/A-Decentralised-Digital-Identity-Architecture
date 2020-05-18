@@ -40,7 +40,7 @@ A brief overview of the file structure of this project.
 Use [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to clone the project.
 
 ```bash
-git clone https://github.com/HarryThomas17/A-Decentralised-Digital-Identity-Architecture.git
+git clone https://github.com/oscar-king/A-Decentralised-Digital-Identity-Architecture.git
 ```
 
 ## Setup
