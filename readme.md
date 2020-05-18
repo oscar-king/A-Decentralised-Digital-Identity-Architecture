@@ -63,10 +63,10 @@ The default configuration for the project is to have docker compose deploy all t
 
 |           Entity        | Directory Name  |      Port     |
 | ------------------------|:---------------:|:-------------:|
-|           User          |        ap       |     5000      |
-| Authentication Provider |        ap       |     5001      |
-| Cerfication Provider    |        cp       |     5002      |
-|          Service        |        ap       |     5003      |
+|           User          |      user       |     5000      |
+| Authentication Provider |      ap         |     5001      |
+| Cerfication Provider    |      cp         |     5002      |
+|          Service        |      service    |     5003      |
 |          Ledger         |      ledger     |     8080      |
 
 ## Contributing
