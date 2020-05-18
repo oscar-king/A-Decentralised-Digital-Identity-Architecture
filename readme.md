@@ -52,7 +52,7 @@ The project makes use of Docker, Docker Compose, and Hyperledger Composer, so if
 ## Building Dependencies
 The project makes use of a base image with all dependencies installed on it. This is done to save time in subsequent builds. This base image can be built manually:
 1. Ensure you are in the project's root directory.
-2. Run the following `docker build -t code_latest:latest .`
+2. Run the following `docker build -t test_latest:latest .`
 This builds the image from the dockerfile located in the project root. 
 
 ## Running
