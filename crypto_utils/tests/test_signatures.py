@@ -1,3 +1,5 @@
+from timeit import timeit
+
 import pytest
 from Crypto.PublicKey import ECC
 from Crypto.Random.random import sample
@@ -11,9 +13,10 @@ from crypto_utils.signatures import SignerBlindSignature, UserBlindSignature, Bl
 def sig_manager():
     class Protocol:
         def __init__(self):
+            self.n = 512
             self.groupObj = IntegerGroupQ()
-            self.groupObj.paramgen(256)
-            self.signer = SignerBlindSignature(self.groupObj, 0, 0, 512)
+            self.groupObj.paramgen(self.n)
+            self.signer = SignerBlindSignature(self.groupObj, 0, 0, self.n)
             self.user = UserBlindSignature(self.signer.get_public_key())
             self.verify = BlindSignatureVerifier(self.signer.get_public_key())
             self.user = UserBlindSignature(self.signer.get_public_key())
@@ -129,3 +132,10 @@ class TestBlindSignatures:
         message = protocol.message
 
         assert protocol.verify.verify(signature, message)
+
+def test_sign_time():
+    from sys import stderr
+    n = 10000
+    data = timeit("protocol.setup_method()", setup="from test_signatures import sig_manager; protocol = sig_manager()", number=n)
+    print(data/n, file=stderr)
+

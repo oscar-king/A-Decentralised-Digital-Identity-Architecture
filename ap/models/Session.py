@@ -5,6 +5,7 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
 from charm.toolbox.conversion import Conversion
+
 from ap import db
 from ap.utils.ledger_utils import get_cp_pubkey
 from crypto_utils.conversions import SigConversion
@@ -12,14 +13,14 @@ from crypto_utils.signatures import BlindSignatureVerifier
 
 
 class Session(db.Model):
-    y = db.Column(db.String(256), primary_key=True)
+    y = db.Column(db.String(), primary_key=True)
     pubk_ = db.Column(db.String(), nullable=False)
     timestamp = db.Column(db.Integer)
     policy = db.Column(db.Integer)
-    u_ = db.Column(db.String)
-    d_ = db.Column(db.String)
-    s1_ = db.Column(db.String)
-    s2_ = db.Column(db.String)
+    u_ = db.Column(db.String())
+    d_ = db.Column(db.String())
+    s1_ = db.Column(db.String())
+    s2_ = db.Column(db.String())
 
     def __init__(self, y: str, pubk: int):
         self.y = y

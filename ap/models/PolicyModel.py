@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 
 from ap import db
 from ap.models.KeyModel import KeyModel
-
 from crypto_utils.signatures import SignerBlindSignature
 
 
@@ -12,7 +11,7 @@ class PolicyModel(db.Model):
 
     policy = db.Column(db.Integer, primary_key=True)
     max_age = db.Column(db.Integer)
-    description = db.Column(db.String)
+    description = db.Column(db.String())
     keys = relationship("KeyModel")
 
     def __init__(self, max_age, description):
@@ -40,6 +39,14 @@ class PolicyModel(db.Model):
             self.keys.append(key)
             self.save_to_db()
         return key
+
+    @staticmethod
+    def find(policy: int):
+        tmp = PolicyModel.query.get(policy)
+        if tmp:
+            return tmp
+        else:
+            return None
 
     def save_to_db(self):
         db.session.add(self)

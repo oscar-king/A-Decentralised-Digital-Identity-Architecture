@@ -1,5 +1,5 @@
 # keys.py
-import json
+from datetime import datetime
 from typing import Tuple
 
 from Crypto.Hash import SHA256
@@ -7,7 +7,7 @@ from Crypto.PublicKey import ECC
 from Crypto.Signature import DSS
 from charm.toolbox.conversion import Conversion
 from sqlalchemy import JSON
-from datetime import datetime
+
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
 from user import db
@@ -21,12 +21,12 @@ class KeyModel(db.Model):
     provider_type_ = db.Column(db.Integer)
     key_pair_ = db.Column(db.LargeBinary)
     user_blind_sig_ = db.Column(db.String)
-    proof_hash_ = db.Column(db.String)
+    proof_hash_ = db.Column(db.String())
     proof_ = db.Column(JSON)
 
     def __init__(self, provider_type: str, p_id: int, policy: int = 1, signer: UserBlindSignature = None,
                  interval: int = None):
-        check = KeyModel.query.filter_by(provider_type_=provider_type, p_id_=p_id, policy_=policy,
+        check = KeyModel.query.filter_by(provider_type_=1 if provider_type == "CP" else 2, p_id_=p_id, policy_=policy,
                                          interval_timestamp_=interval)
         if check.first() is not None:
             raise Exception("KeyModel already exists")
@@ -42,9 +42,9 @@ class KeyModel(db.Model):
         time = datetime.utcfromtimestamp(self.interval_timestamp)
         return "Key[type='%s' timestamp='%s', policy='%s']" % (self.type, time.strftime('%d-%m-%Y %H:%M'), self.policy)
 
-    @property
-    def id(self) -> int:
-        return self.id_
+    # @property
+    # def id(self) -> int:
+    #     return self.id_
 
     @property
     def signer(self) -> UserBlindSignature:
@@ -141,7 +141,6 @@ class KeyModel(db.Model):
             if self.proof is None:
                 raise Exception("Did not provide a proof nor is one set in the keymodel!")
             else:
-
                 return self.signer.gen_signature(self.proof)
 
     def save_to_db(self):
@@ -153,8 +152,8 @@ class KeyModel(db.Model):
         db.session.commit()
 
     @staticmethod
-    def find(type: int, policy: int, timestamp: int):
-        tmp = KeyModel.query.get((type, policy, timestamp))
+    def find(p_id: int, policy: int, timestamp: int):
+        tmp = KeyModel.query.get((p_id, policy, timestamp))
         if tmp:
             return tmp
         else:

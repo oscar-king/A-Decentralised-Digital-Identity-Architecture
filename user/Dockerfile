@@ -20,8 +20,15 @@ FROM test_latest
 # Set the working directory to /code
 WORKDIR /code
 
+RUN apk add --no-cache --virtual .build-deps \
+    gcc \
+    python3-dev \
+    musl-dev \
+    postgresql-dev \
+    && pip install --no-cache-dir psycopg2-binary
+
 # Copy the current directory contents into the container at /user
 ADD ./user ./user
 ADD ./crypto_utils ./crypto_utils
 
-CMD ["gunicorn","--workers=2", "--bind=:5000","--forwarded-allow-ips=*","user:create_app()"]
+CMD ["gunicorn","--workers=3", "--bind=:5000","--forwarded-allow-ips=*","--log-level=info", "user:create_app()"]

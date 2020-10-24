@@ -1,17 +1,22 @@
 import functools
-import requests
-from charm.toolbox.conversion import Conversion
-from flask import Blueprint, render_template, redirect, url_for, request, json, flash
 import os
+import random
 from time import localtime
+from traceback import format_exc
+
+import dateutil.parser
 import dotenv
+import requests
+from Crypto import Random as rd
+from charm.toolbox.conversion import Conversion
+from flask import Blueprint, render_template, redirect, url_for, request, json, flash, jsonify
+from flask import current_app
+
 from crypto_utils.conversions import SigConversion
 from user.models.keys import KeyModel
-from flask import current_app
 from user.models.sessions import SessionModel
 from user.utils.utils import handle_challenge, handle_response_hashes, prove_owner, validate_block, \
     handle_challenge_ap, validate_proof, verify_block_hash
-import dateutil.parser
 
 main = Blueprint('main', __name__, template_folder='templates')
 
@@ -93,6 +98,7 @@ def challenge_response_post(headers):
     if res.status_code == 401:
         return redirect(url_for('auth.login'))
     if res.status_code == 500:
+        current_app.logger.error("Could not setup keys. Check CP Logs")
         flash(res.json().get('message'), "post_keys")
     try:
         # Generates the challenge response
@@ -110,12 +116,15 @@ def challenge_response_post(headers):
                 flash("Keys have been generated", 'keygen_success')
                 return render_template('generate_keys.html')
             else:
+                current_app.logger.error("Could not generate proofs, check CP logs.")
                 return render_template('generate_keys.html')
         except Exception as e:
             flash(str(e), "post_keys")
+            current_app.logger.error(format_exc())
             return render_template('generate_keys.html')
     except Exception as e:
         flash(str(e), "post_keys")
+        current_app.logger.error(format_exc())
         return render_template('generate_keys.html')
 
 
@@ -307,13 +316,216 @@ def query():
 def query_post():
     params = {
         'id': int(request.form.get('id')),
-        'type': int(request.form.get('type')),
+        'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
+        'policy': int(request.form.get('policy'))
+    }
+    # key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('id'), policy_=params.get('policy'),
+    #                                      interval_timestamp_=params.get('timestamp')).first()
+    key_model = KeyModel.find(params.get('id'), params.get('policy'), params.get('timestamp'))
+    if key_model is not None:
+        return json.dumps(str(key_model)), 200
+    else:
+        return "None", 200
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------- API CALLS FOR LOAD AND PERFORMANCE TESTING ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+@main.route("/prove", methods=['POST'])
+def prove_owner():
+    # Setup parameters that are sent to the AP
+    params = {
+        'cp': int(request.form.get('cp')),
         'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
         'policy': int(request.form.get('policy'))
     }
 
-    # key_model = KeyModel.query.filter_by(provider_type_=params.get('type'), p_id_=params.get('id'), policy_=params.get('policy'),
-    #                                      interval_timestamp_=params.get('timestamp')).first()
+    key_model = KeyModel.find(params.get('cp'), params.get('policy'), params.get('timestamp'))
 
-    key_model = KeyModel.find(params.get('type'), params.get('policy'), params.get('timestamp'))
-    return json.dumps(str(key_model), key_model), 200
+    pubk = {
+        'pubk': Conversion.OS2IP(key_model.public_key)
+    }
+
+    # Get the challenge from the AP in order to prove that the user owns a specific keypair
+    res = requests.get('http://{}/prove_owner'.format(current_app.config['ap_host']), params=pubk)
+    y = res.json().get('y')
+
+    # Prove the user owns the private key corresponding to a set of proofs in the block
+    # Proof consists of the signature of the private key on the nonce y and the blind signature on the public key
+    try:
+        proof_owner = key_model.sign(y)
+        blind_signature = key_model.generate_blind_signature()
+
+        proof_resp = json.dumps({
+            'y': y,
+            'signature': proof_owner[1],
+            'blind_signature': json.dumps(SigConversion.convert_dict_strlist(blind_signature))
+        })
+
+        # Post the proofs
+        res = requests.post('http://{}/prove_owner'.format(current_app.config['ap_host']), json=proof_resp, params=params)
+        if res.status_code == 200:
+            # Receive access token for AP
+            access_info = res.json()
+            headers = {
+                'Authorization': "Bearer " + access_info.get('access')
+            }
+            return json.dumps(headers), 200
+        else:
+            return "Fail", 500
+    except Exception:
+        return "Fail", 500
+
+
+@main.route("/generate", methods=['POST'])
+def generate_ap_signature():
+    service_y = str(rd.get_random_bytes(256).hex())
+    timestamp = int(dateutil.parser.parse(request.args.get('timestamp')).timestamp())
+    policy = int(request.args.get('policy'))
+
+    pubk = random.getrandbits(512)
+
+    params = {
+        'timestamp': timestamp,
+        'policy': policy,
+        'pubk': pubk
+    }
+
+    try:
+        # Request challenge from AP to issue blind signature
+        challenge = requests.post('http://{}/load_sig'.format(current_app.config['ap_host']), params=params).json()
+
+        # Handle challenge
+        try:
+            challenge['timestamp'] = timestamp
+            ap_y = challenge.pop('y')
+            params = {
+                'y': ap_y
+            }
+
+            e = json.dumps(handle_challenge_ap(challenge, policy, service_y))
+
+            # Send Response
+            proof_response = requests.post('http://{}/load_proof'.format(current_app.config['ap_host']), json=e, params=params)
+            proofs = proof_response.json()
+
+            # Validate Response
+            try:
+                validate_proof(proofs)
+            except Exception as e:
+                current_app.logger.error(format_exc())
+                flash("Error when validating proofs: " + str(e), "access_service_error")
+                return "Error when validating proofs: " + str(e), 500
+
+            # Get AP Keymodel
+            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2).first()
+
+            # Build signature
+            blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
+            ap_key_model.delete()
+
+            return proof_response.json(), 200
+        except Exception as e:
+            current_app.logger.error(format_exc())
+            return "Error when handling challenge: " + str(e), 500
+    except Exception:
+        current_app.logger.error(format_exc())
+        return "Did not get a response for the challenge", 500
+
+
+@main.route("/service_response", methods=['POST'])
+def get_service_response():
+    # Get nonce from service
+    res = requests.get('http://{}/request'.format(current_app.config['service_host'])).json()
+    service_y = res.get('y')
+
+    # Setup parameters that are sent to the AP
+    params = {
+        'cp': int(request.form.get('cp')),
+        'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
+        'policy': int(request.form.get('policy'))
+    }
+
+    key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
+                                         interval_timestamp_=params.get('timestamp')).first()
+
+    pubk = {
+        'pubk': Conversion.OS2IP(key_model.public_key)
+    }
+
+    # Get the challenge from the AP in order to prove that the user owns a specific keypair
+    res = requests.get('http://{}/prove_owner'.format(current_app.config['ap_host']), params=pubk)
+    y = res.json().get('y')
+
+    # Prove the user owns the private key corresponding to a set of proofs in the block
+    # Proof consists of the signature of the private key on the nonce y and the blind signature on the public key
+    try:
+        proof_owner = key_model.sign(y)
+        blind_signature = key_model.generate_blind_signature()
+
+        proof_resp = json.dumps({
+            'y': y,
+            'signature': proof_owner[1],
+            'blind_signature': json.dumps(SigConversion.convert_dict_strlist(blind_signature))
+        })
+
+        # Post the proofs
+        res = requests.post('http://{}/prove_owner'.format(current_app.config['ap_host']), json=proof_resp, params=params)
+
+        # Receive access token for AP
+        access_info = res.json()
+        err = access_info
+        headers = {
+            'Authorization': "Bearer " + access_info.get('access')
+        }
+
+        # Request challenge from AP to issue blind signature
+        challenge = requests.get('http://{}/init_sig'.format(current_app.config['ap_host']), headers=headers).json()
+
+        # Handle challenge
+        try:
+            challenge['timestamp'] = params.get('timestamp')
+            e = json.dumps(handle_challenge_ap(challenge, params.get('policy'), service_y))
+
+            # Send Response
+            proof_response = requests.post('http://{}/generate_proof'.format(current_app.config['ap_host']), json=e, headers=headers)
+            proofs = proof_response.json()
+
+            # Validate Response
+            try:
+                validate_proof(proofs)
+            except Exception as e:
+                current_app.logger.error(format_exc())
+                flash("Error when validating proofs: " + str(e), "access_service_error")
+                return render_template('service_authenticate.html')
+
+            # Get AP Keymodel
+            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2).first()
+
+            # Build signature
+            blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
+
+            # Send signature on service_y to service
+            resp_service = {
+                'y': service_y,
+                'sig': json.dumps(SigConversion.convert_dict_strlist(blind_signature)),
+                'policy': params.get('policy'),
+                'timestamp': params.get('timestamp')
+            }
+
+            # Delete after use
+            ap_key_model.delete()
+
+            return jsonify(resp_service), 200
+        except Exception as e:
+            current_app.logger.error(format_exc())
+            return str(e), 500
+    except Exception as e:
+        current_app.logger.error(format_exc())
+        return str(e), 500
+
+
+

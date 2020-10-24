@@ -7,7 +7,7 @@ from crypto_utils.signatures import SignerBlindSignature
 class KeyModel(db.Model):
     timestamp = db.Column(db.Integer, primary_key=True)
     policy = db.Column(db.Integer, ForeignKey('policies.policy'), primary_key=True)
-    signer_ = db.Column(db.String)
+    signer_ = db.Column(db.String())
 
     def __init__(self, timestamp, policy, signer):
         self.timestamp = timestamp

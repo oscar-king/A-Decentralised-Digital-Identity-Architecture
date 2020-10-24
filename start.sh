@@ -18,7 +18,7 @@ function new_provider() {
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-cd "$DIR/ledger"
+cd "$DIR/ledger" || exit
 export FABRIC_VERSION=hlfv12
 export FABRIC_START_TIMEOUT=30
 
@@ -41,7 +41,7 @@ sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer
 sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer0.org1.example.com:7053/' -e 's/localhost:7054/ca.org1.example.com:7054/'  -e 's/localhost:7050/orderer.example.com:7050/'  < $HOME/.composer/cards/CP@digid/connection.json  > /tmp/connection.json && cp -p /tmp/connection.json $HOME/.composer/cards/CP@digid/
 sed -e 's/localhost:7051/peer0.org1.example.com:7051/' -e 's/localhost:7053/peer0.org1.example.com:7053/' -e 's/localhost:7054/ca.org1.example.com:7054/'  -e 's/localhost:7050/orderer.example.com:7050/'  < $HOME/.composer/cards/AP@digid/connection.json  > /tmp/connection.json && cp -p /tmp/connection.json $HOME/.composer/cards/AP@digid/
 
-cd "$DIR"
+cd "$DIR" || exit
 
 # Start flask containers
 docker-compose -f "docker-compose.yml" up -d --build

@@ -8,13 +8,12 @@
 
 * type:           signature
 * setting:        integer groups
-
-Code adapted from: https://jhuisi.github.io/charm/_modules/protocol_a01.html#Asig
 """
 import hashlib
 import json
 
 from Crypto.Hash.SHA256 import SHA256Hash
+from Crypto.Util.number import inverse
 from charm.toolbox.conversion import Conversion
 from charm.toolbox.integergroup import IntegerGroupQ
 from charm.toolbox.integergroup import integer, randomBits
@@ -34,25 +33,21 @@ def hash_int(args):
         hash.update(Conversion.IP2OS(arg))
     return Conversion.OS2IP(hash.digest())
 
-
-def xgcd(a, b):
-    """return (g, x, y) such that a*x + b*y = g = gcd(a, b)"""
-    x0, x1, y0, y1 = 0, 1, 1, 0
-    while a != 0:
-        q, b, a = b // a, a, b % a
-        y0, y1 = y1, y0 - q * y1
-        x0, x1 = x1, x0 - q * x1
-    return b, x0, y0
+#
+# def xgcd(a, b):
+#     """return (g, x, y) such that a*x + b*y = g = gcd(a, b)"""
+#     x0, x1, y0, y1 = 0, 1, 1, 0
+#     while a != 0:
+#         q, b, a = b // a, a, b % a
+#         y0, y1 = y1, y0 - q * y1
+#         x0, x1 = x1, x0 - q * x1
+#     return b, x0, y0
 
 
 def mulinv(a, b):
     a = int(a)
     b = int(b)
-    """return x such that (x * a) % b == 1"""
-    g, x, _ = xgcd(a, b)
-    if g == 1:
-        return x % b
-    return x % b
+    return inverse(a, b)
 
 
 class BlindSigner:
@@ -112,9 +107,6 @@ class BlindSigner:
 
 
 class UserBlindSignature(BlindSigner):
-    """
-    This class represents the entity who wishes to have a certain message blindly signed.
-    """
     def __init__(self, input_=None):
         if input_ is not None:
             self.p = input_.get('p')
@@ -136,8 +128,7 @@ class UserBlindSignature(BlindSigner):
         return None
 
     def __get__(self, keys, _type=tuple):
-        if not type(keys) == list:
-            return
+        if not type(keys) == list: return
         if _type == tuple:
             ret = []
         else:
@@ -217,9 +208,6 @@ class UserBlindSignature(BlindSigner):
 
 
 class SignerBlindSignature(BlindSigner):
-    """
-    This class represents the entity which blindly signs a given value.
-    """
     def __init__(self, group=None, p=0, q=0, secparam=512):
         self.group = group if group is not None else IntegerGroupQ()
         self.group.p, self.group.q, self.group.r = p, q, 2

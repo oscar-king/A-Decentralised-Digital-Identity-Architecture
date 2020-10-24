@@ -1,11 +1,11 @@
 import os
 
-import requests
-from flask import json, jsonify, request, current_app, Blueprint
+from flask import json, jsonify, request, Blueprint
+
 from crypto_utils.conversions import SigConversion
 from service import db
-from service.handlers import request_handler, verify_sig
 from service.handlers import User
+from service.handlers import request_handler, verify_sig
 from service.utils import get_ap_key
 
 main = Blueprint('main', __name__, template_folder='templates')
@@ -29,12 +29,10 @@ def request_y():
 
 @main.route("/response", methods=['POST'])
 def user_response():
-    data = json.loads(request.json)
-
-    # params = {
-    #     'policy': data.get('policy'),
-    #     'timestamp': data.get('timestamp')
-    # }
+    if isinstance(request.json, dict):
+        data = request.json
+    else:
+        data = json.loads(request.json)
     policy = data.get('policy')
     timestamp = data.get('timestamp')
 

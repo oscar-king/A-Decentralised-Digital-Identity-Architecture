@@ -190,3 +190,43 @@ def get_cp_keys():
         for key in keys:
             res.append(str(key))
         return jsonify(res), 200
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# -------------------------------- API CALLS FOR LOAD AND PERFORMANCE TESTING ------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+@main.route('/load_sig', methods=['POST'])
+def load_sig():
+    timestamp = int(request.args.get('timestamp'))
+    policy = int(request.args.get('policy'))
+    pubk = int(request.args.get('pubk'))
+
+    try:
+        from ap.utils.load_test_utils import load_test_handler
+        resp = jsonify(load_test_handler(pubk, timestamp, policy))
+        return resp, 201
+    except Exception as e:
+        resp = jsonify({
+            'message': str(e),
+        })
+        return resp, 500
+
+
+@main.route('/load_proof', methods=['POST'])
+def load_proof():
+    e = json.loads(request.json)
+    y = str(request.args.get('y'))
+
+    e.pop('timestamp')
+
+    if not e:  # If no file is submitted flash message
+        resp = jsonify({
+            'message': "Bad Request"
+        })
+        return resp, 400
+    else:
+        from ap.utils.load_test_utils import load_test_proof_handler
+        proof = json.dumps(load_test_proof_handler(e, y))
+        return proof, 201

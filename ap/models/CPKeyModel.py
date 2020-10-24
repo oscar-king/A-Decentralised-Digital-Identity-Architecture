@@ -1,4 +1,5 @@
 import json
+
 from ap import db
 from crypto_utils.conversions import SigConversion
 
@@ -6,7 +7,7 @@ from crypto_utils.conversions import SigConversion
 class CPKeyModel(db.Model):
     timestamp_ = db.Column(db.Integer, primary_key=True)
     policy_ = db.Column(db.Integer, primary_key=True)
-    public_key_ = db.Column(db.String)
+    public_key_ = db.Column(db.String())
 
     def __init__(self, timestamp, policy, public_key):
         self.timestamp_ = timestamp
