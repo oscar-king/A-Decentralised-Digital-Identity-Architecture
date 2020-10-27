@@ -18,6 +18,7 @@ class KeyModel(db.Model):
     p_id_ = db.Column(db.Integer, primary_key=True)
     policy_ = db.Column(db.Integer, primary_key=True)
     interval_timestamp_ = db.Column(db.Integer, primary_key=True)
+    index = db.Column(db.String, primary_key=True)
     provider_type_ = db.Column(db.Integer)
     key_pair_ = db.Column(db.LargeBinary)
     user_blind_sig_ = db.Column(db.String)
@@ -25,9 +26,9 @@ class KeyModel(db.Model):
     proof_ = db.Column(JSON)
 
     def __init__(self, provider_type: str, p_id: int, policy: int = 1, signer: UserBlindSignature = None,
-                 interval: int = None):
+                 interval: int = None, index: str = "1"):
         check = KeyModel.query.filter_by(provider_type_=1 if provider_type == "CP" else 2, p_id_=p_id, policy_=policy,
-                                         interval_timestamp_=interval)
+                                         interval_timestamp_=interval, index=index)
         if check.first() is not None:
             raise Exception("KeyModel already exists")
         else:
@@ -37,6 +38,7 @@ class KeyModel(db.Model):
             self.key_pair_ = ECC.generate(curve='P-256').export_key(format='DER')
             self.user_blind_sig_ = signer.encode() if signer is not None else None
             self.interval_timestamp_ = interval
+            self.index = index
 
     def __repr__(self):
         time = datetime.utcfromtimestamp(self.interval_timestamp)
@@ -152,8 +154,8 @@ class KeyModel(db.Model):
         db.session.commit()
 
     @staticmethod
-    def find(p_id: int, policy: int, timestamp: int):
-        tmp = KeyModel.query.get((p_id, policy, timestamp))
+    def find(p_id: int, policy: int, timestamp: int, index="1"):
+        tmp = KeyModel.query.get((p_id, policy, timestamp, index))
         if tmp:
             return tmp
         else:

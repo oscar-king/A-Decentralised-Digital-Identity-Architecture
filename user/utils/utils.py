@@ -1,18 +1,19 @@
 import json
 from typing import Tuple
+
+import dotenv
+from Crypto.Hash.SHA256 import SHA256Hash
 from charm.toolbox.conversion import Conversion
 from flask import current_app
 
 from crypto_utils.conversions import SigConversion
 from crypto_utils.signatures import UserBlindSignature
 from user.models.keys import KeyModel
-from Crypto.Hash.SHA256 import SHA256Hash
-import dotenv
 
 dotenv.load_dotenv('.env')
 
 
-def handle_challenge_util(signer_type: str, signer_id: int, resp: dict, policy: int, message: int = None):
+def handle_challenge_util(signer_type: str, signer_id: int, resp: dict, policy: int, message: int = None, index = False):
     """
     Utility function that takes care of type conversions and ultimately calls the signing function
     :param signer_type: Whether a blind signature is being requested from a CP or an AP.
@@ -28,7 +29,8 @@ def handle_challenge_util(signer_type: str, signer_id: int, resp: dict, policy: 
 
     # Generate signer and keymodel
     signer = UserBlindSignature(pubk)
-    key_model = KeyModel(provider_type=signer_type, p_id=signer_id, policy=policy, signer=signer, interval=timestamp)
+    key_model = KeyModel(provider_type=signer_type, p_id=signer_id, policy=policy, signer=signer,
+                         interval=timestamp, index=format(message, 'x') if index else "1")
 
     if message is None:
         message = Conversion.OS2IP(key_model.public_key)
@@ -168,4 +170,5 @@ def handle_challenge_ap(challenge: dict, policy: int, service_y):
     :param service_y: The nonce sent by the service that a user has requested access to.
     :return: Challenge response 'e' which needs to be sent back to the AP.
     """
-    return handle_challenge_util('AP', current_app.config['ap_dlt_id'], challenge, policy, int(service_y, 16))
+    return handle_challenge_util('AP', current_app.config['ap_dlt_id'],
+                                 challenge, policy, int(service_y, 16), index=True)

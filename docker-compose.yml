@@ -1,27 +1,27 @@
 version: "3.7"
 
 services:
-  ap_db:
-    image: postgres
-    restart: always
-    container_name: ap_db
-    environment:
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_USER=root
-      - POSTGRES_DB=db
-    ports:
-      - "5432"
-
-  user_db:
-    image: postgres
-    restart: always
-    container_name: user_db
-    environment:
-      - POSTGRES_PASSWORD=root
-      - POSTGRES_USER=root
-      - POSTGRES_DB=db
-    ports:
-      - "5432"
+#  ap_db:
+#    image: postgres
+#    restart: always
+#    container_name: ap_db
+#    environment:
+#      - POSTGRES_PASSWORD=root
+#      - POSTGRES_USER=root
+#      - POSTGRES_DB=db
+#    ports:
+#      - "5432"
+#
+#  user_db:
+#    image: postgres
+#    restart: always
+#    container_name: user_db
+#    environment:
+#      - POSTGRES_PASSWORD=root
+#      - POSTGRES_USER=root
+#      - POSTGRES_DB=db
+#    ports:
+#      - "5432"
 
   composer:
     build:
@@ -89,8 +89,8 @@ services:
       - FLASK_ENV=${FLASK_ENV}
     ports:
       - "5000"
-    depends_on:
-      - ap_db
+#    depends_on:
+#      - ap_db
 
   service:
     build:

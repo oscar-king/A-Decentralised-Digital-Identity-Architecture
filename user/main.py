@@ -100,6 +100,7 @@ def challenge_response_post(headers):
     if res.status_code == 500:
         current_app.logger.error("Could not setup keys. Check CP Logs")
         flash(res.json().get('message'), "post_keys")
+        return render_template("generate_keys.html")
     try:
         # Generates the challenge response
         es = handle_challenge(res.json(), params.get('policy'))
@@ -180,6 +181,7 @@ def access_service_post():
     # Get nonce from service
     res = requests.get('http://{}/request'.format(current_app.config['service_host'])).json()
     service_y = res.get('y')
+
     VERIFY = True if request.form.get('verify') else False
     DELETE = True if request.form.get('delete') else False
 
@@ -208,6 +210,7 @@ def access_service_post():
         try:
             verify_block_hash(data)
         except Exception as e:
+            current_app.logger.error(format_exc())
             flash("Error when validating block: " + str(e), "access_service_error")
             return render_template('service_authenticate.html')
 
@@ -261,11 +264,13 @@ def access_service_post():
             try:
                 validate_proof(proofs)
             except Exception as e:
+                current_app.logger.error(format_exc())
                 flash("Error when validating proofs: " + str(e), "access_service_error")
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2).first()
+            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'],
+                                                    provider_type_=2, index=service_y).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
@@ -295,8 +300,10 @@ def access_service_post():
                 return render_template('service_authenticate.html')
         except Exception as e:
             flash("There was an error when handling the challenge: " + str(e), "access_service_error")
+            current_app.logger.error(format_exc())
             return render_template('service_authenticate.html')
     except Exception as e:
+        current_app.logger.error(format_exc())
         flash("There was an error in the ownership proving stage. The blind signature likely failed to verify: "
               + str(e), "access_service_error")
         return render_template('service_authenticate.html')
@@ -319,8 +326,6 @@ def query_post():
         'timestamp': int(dateutil.parser.parse(request.form.get('timestamp')).timestamp()),
         'policy': int(request.form.get('policy'))
     }
-    # key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('id'), policy_=params.get('policy'),
-    #                                      interval_timestamp_=params.get('timestamp')).first()
     key_model = KeyModel.find(params.get('id'), params.get('policy'), params.get('timestamp'))
     if key_model is not None:
         return json.dumps(str(key_model)), 200
@@ -421,7 +426,7 @@ def generate_ap_signature():
                 return "Error when validating proofs: " + str(e), 500
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2).first()
+            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2, index=service_y).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
@@ -477,7 +482,8 @@ def get_service_response():
 
         # Receive access token for AP
         access_info = res.json()
-        err = access_info
+        current_app.logger.error(access_info)
+
         headers = {
             'Authorization': "Bearer " + access_info.get('access')
         }
@@ -503,7 +509,8 @@ def get_service_response():
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2).first()
+            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'],
+                                                    provider_type_=2, index=service_y).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))

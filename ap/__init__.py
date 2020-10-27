@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from pytz import utc
 # init SQLAlchemy so we can use it later in our models
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.pool import StaticPool
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -16,8 +17,8 @@ def create_app():
     app = Flask(__name__)
 
     app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ap.sqlite'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://root:root@ap_db:5432/db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ap.sqlite'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://root:root@ap_db:5432/db'
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JWT_HEADER_NAME'] = 'Authorization'
@@ -25,10 +26,10 @@ def create_app():
     app.config['JWT_BLACKLIST_ENABLED'] = False
     app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
     app.config['SCHEDULER_TIMEZONE'] = utc
-    # app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    #     'connect_args': {'check_same_thread': False},
-    #     'poolclass': StaticPool
-    # }
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'connect_args': {'check_same_thread': False},
+        'poolclass': StaticPool
+    }
 
     db.init_app(app)
     jwt.init_app(app)

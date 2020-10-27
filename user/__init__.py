@@ -13,8 +13,8 @@ def create_app():
     app = Flask(__name__, template_folder='templates')
 
     app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
-    # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.sqlite'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://root:root@user_db:5432/db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.sqlite'
+    # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://root:root@user_db:5432/db'
 
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
