@@ -427,6 +427,9 @@ def generate_ap_signature():
 
             # Get AP Keymodel
             ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2, index=service_y).first()
+            if not ap_key_model:
+                ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2,
+                                                        index=service_y).first()
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))

@@ -208,7 +208,7 @@ class UserBlindSignature(BlindSigner):
 
 
 class SignerBlindSignature(BlindSigner):
-    def __init__(self, group=None, p=0, q=0, secparam=512):
+    def __init__(self, group=None, p=0, q=0, secparam=256):
         self.group = group if group is not None else IntegerGroupQ()
         self.group.p, self.group.q, self.group.r = p, q, 2
 
