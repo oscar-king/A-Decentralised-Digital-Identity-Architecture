@@ -40,7 +40,7 @@ def handle_challenge_util(signer_type: str, signer_id: int, resp: dict, policy: 
     key_model.signer = signer
     key_model.save_to_db()
 
-    return e
+    return e, key_model
 
 
 def handle_challenge(resp: dict or list, policy: int):
@@ -53,7 +53,7 @@ def handle_challenge(resp: dict or list, policy: int):
     """
     es = list()
     for x in resp:
-        e = handle_challenge_util('CP', current_app.config['cp_dlt_id'], x, policy)
+        e, key_model = handle_challenge_util('CP', current_app.config['cp_dlt_id'], x, policy)
         es.append(e)
 
     ret = {

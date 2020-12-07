@@ -72,11 +72,12 @@ def prove_owner():
         else:
             nonce = Nonce(pubk)
             saved = nonce.save()
-            if saved:
-                return jsonify({'y': nonce.y}), 201
-            else:
-                return Response("{'content': 'Something went wrong saving session info.'}",
-                                status=501, mimetype='application/json')
+            return jsonify({'y': nonce.y}), 201
+            # if saved:
+            #     return jsonify({'y': nonce.y}), 201
+            # else:
+            #     return Response("{'content': 'Something went wrong saving session info.'}",
+            #                     status=501, mimetype='application/json')
 
     # Response
     elif request.method == 'POST':

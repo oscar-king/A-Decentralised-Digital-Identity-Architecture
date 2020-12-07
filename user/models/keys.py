@@ -27,9 +27,10 @@ class KeyModel(db.Model):
 
     def __init__(self, provider_type: str, p_id: int, policy: int = 1, signer: UserBlindSignature = None,
                  interval: int = None, index: str = "1"):
-        check = KeyModel.query.filter_by(provider_type_=1 if provider_type == "CP" else 2, p_id_=p_id, policy_=policy,
-                                         interval_timestamp_=interval, index=index)
-        if check.first() is not None:
+        # check = KeyModel.query.filter_by(provider_type_=1 if provider_type == "CP" else 2, p_id_=p_id, policy_=policy,
+        #                                  interval_timestamp_=interval, index=index)
+        check = KeyModel.find(p_id, policy, interval, index)
+        if check is not None:
             raise Exception("KeyModel already exists")
         else:
             self.type = provider_type

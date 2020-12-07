@@ -146,8 +146,10 @@ def verify_post():
         'policy': int(request.form.get('policy'))
     }
 
-    key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
-                                         interval_timestamp_=params.get('timestamp')).first()
+    # key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
+    #                                      interval_timestamp_=params.get('timestamp')).first()
+
+    key_model = KeyModel.find(params.get('cp'), params.get('policy'), params.get('timestamp'))
 
     res = requests.get('http://{}/request_certs'.format(current_app.config['ap_host']), params=params)
     if res.status_code == 500:
@@ -192,8 +194,9 @@ def access_service_post():
         'policy': int(request.form.get('policy'))
     }
 
-    key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
-                                         interval_timestamp_=params.get('timestamp')).first()
+    # key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
+    #                                      interval_timestamp_=params.get('timestamp')).first()
+    key_model = KeyModel.find(params.get('cp'), params.get('policy'), params.get('timestamp'))
 
     data = None
     if VERIFY:
@@ -254,7 +257,8 @@ def access_service_post():
         # Handle challenge
         try:
             challenge['timestamp'] = params.get('timestamp')
-            e = json.dumps(handle_challenge_ap(challenge, params.get('policy'), service_y))
+            e, ap_key_model = handle_challenge_ap(challenge, params.get('policy'), service_y)
+            e = json.dumps(e)
 
             # Send Response
             proof_response = requests.post('http://{}/generate_proof'.format(current_app.config['ap_host']), json=e, headers=headers)
@@ -269,8 +273,10 @@ def access_service_post():
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'],
-                                                    provider_type_=2, index=service_y).first()
+            # ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'],
+            #                                         provider_type_=2, index=service_y).first()
+
+            # ap_key_model = KeyModel.find(current_app.config['ap_dlt_id'], params.get('policy'), params.get('timestamp'), service_y)
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
@@ -410,8 +416,8 @@ def generate_ap_signature():
             params = {
                 'y': ap_y
             }
-
-            e = json.dumps(handle_challenge_ap(challenge, policy, service_y))
+            e, ap_key_model = handle_challenge_ap(challenge, policy, service_y)
+            e = json.dumps(e)
 
             # Send Response
             proof_response = requests.post('http://{}/load_proof'.format(current_app.config['ap_host']), json=e, params=params)
@@ -426,10 +432,14 @@ def generate_ap_signature():
                 return "Error when validating proofs: " + str(e), 500
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2, index=service_y).first()
-            if not ap_key_model:
-                ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2,
-                                                        index=service_y).first()
+            # ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2, index=service_y).first()
+            # ap_key_model = KeyModel.find(current_app.config['ap_dlt_id'], policy, timestamp, service_y)
+            # if not ap_key_model:
+            #     # ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'], provider_type_=2,
+            #     #                                         index=service_y).first()
+            #     ap_key_model = KeyModel.find(current_app.config['ap_dlt_id'], policy, timestamp, service_y)
+            #     if not ap_key_model:
+            #         current_app.logger.error(f"Challenge: {challenge}")
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
@@ -457,8 +467,9 @@ def get_service_response():
         'policy': int(request.form.get('policy'))
     }
 
-    key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
-                                         interval_timestamp_=params.get('timestamp')).first()
+    # key_model = KeyModel.query.filter_by(provider_type_=1, p_id_=params.get('cp'), policy_=params.get('policy'),
+    #                                      interval_timestamp_=params.get('timestamp')).first()
+    key_model = KeyModel.find(params.get('cp'), params.get('policy'), params.get('timestamp'))
 
     pubk = {
         'pubk': Conversion.OS2IP(key_model.public_key)
@@ -497,7 +508,8 @@ def get_service_response():
         # Handle challenge
         try:
             challenge['timestamp'] = params.get('timestamp')
-            e = json.dumps(handle_challenge_ap(challenge, params.get('policy'), service_y))
+            e, ap_key_model = handle_challenge_ap(challenge, params.get('policy'), service_y)
+            e = json.dumps(e)
 
             # Send Response
             proof_response = requests.post('http://{}/generate_proof'.format(current_app.config['ap_host']), json=e, headers=headers)
@@ -512,8 +524,10 @@ def get_service_response():
                 return render_template('service_authenticate.html')
 
             # Get AP Keymodel
-            ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'],
-                                                    provider_type_=2, index=service_y).first()
+            # ap_key_model = KeyModel.query.filter_by(p_id_=current_app.config['ap_dlt_id'],
+            #                                         provider_type_=2, index=service_y).first()
+
+            # ap_key_model = KeyModel.find(params.get('cp'), params.get('policy'), params.get('timestamp'))
 
             # Build signature
             blind_signature = ap_key_model.generate_blind_signature(proofs.get('proof'))
