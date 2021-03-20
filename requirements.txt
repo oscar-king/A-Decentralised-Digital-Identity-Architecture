@@ -30,7 +30,7 @@ idna==2.8
 imagesize==1.1.0
 importlib-metadata==0.19
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 lark-parser==0.7.1
 MarkupSafe==1.1.1
 more-itertools==7.2.0
